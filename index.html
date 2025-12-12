@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Turbine Master">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="description" content="Nuclear Steam Turbine Training Game">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>TURBINE MASTER PRO</title>
+<style>
+:root{--cy:#00fff7;--yl:#f4d03f;--gn:#27ae60;--rd:#c0392b;--bl:#2980b9;--dk:#1a1a2e;--md:#16213e;--lt:#0f3460}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:var(--dk);color:#e0e0e0;min-height:100vh;-webkit-tap-highlight-color:transparent}
+.container{max-width:500px;margin:0 auto;padding:12px;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.hdr{text-align:center;padding:12px 0;border-bottom:2px solid var(--cy);margin-bottom:12px}
+.hdr h1{font-size:1.4rem;color:var(--cy)}
+.hdr p{font-size:.7rem;color:var(--yl);margin-top:3px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
+.stat{background:var(--md);border:1px solid var(--lt);border-radius:6px;padding:6px;text-align:center}
+.stat .v{font-size:1.1rem;color:var(--cy);font-weight:bold}.stat .l{font-size:.55rem;color:#888}
+.xp-wrap{background:var(--md);border-radius:12px;padding:3px;margin-bottom:12px;position:relative}
+.xp-bar{height:18px;background:linear-gradient(90deg,var(--bl),var(--cy));border-radius:10px;transition:width .5s}
+.xp-txt{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:.7rem;color:#fff}
+.lvl{position:absolute;right:5px;top:-8px;background:var(--yl);color:var(--dk);font-weight:900;font-size:.65rem;padding:2px 8px;border-radius:6px}
+.scr{display:none}.scr.active{display:block}
+.menu{display:grid;gap:10px}
+.mbtn{background:var(--md);border:2px solid var(--lt);border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.mbtn:active{border-color:var(--cy);transform:scale(0.98)}
+.mbtn .ico{font-size:1.8rem;width:45px;text-align:center}
+.mbtn h3{font-size:.9rem;color:var(--cy)}.mbtn p{font-size:.7rem;color:#888}
+.cat-grid{display:grid;gap:8px;max-height:65vh;overflow-y:auto}
+.cat-btn{background:var(--md);border:1px solid var(--lt);border-radius:8px;padding:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.cat-btn:active{border-color:var(--cy)}
+.cat-btn h4{font-size:.8rem;color:var(--cy)}.cat-btn span{font-size:.65rem;color:#888}
+.q-hdr{display:flex;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--lt)}
+.q-hdr span{font-size:.75rem;color:var(--cy)}
+.timer{height:5px;background:var(--md);border-radius:3px;margin-bottom:12px;overflow:hidden}
+.timer-fill{height:100%;background:linear-gradient(90deg,var(--gn),var(--yl),var(--rd));transition:width .1s linear}
+.q-box{background:var(--md);border:2px solid var(--bl);border-radius:10px;padding:16px;margin-bottom:14px}
+.q-box p{font-size:.95rem;line-height:1.5}
+.ans-grid{display:grid;gap:8px}
+.ans{background:var(--dk);border:2px solid var(--lt);border-radius:10px;padding:12px;cursor:pointer;font-size:.85rem;transition:all .2s}
+.ans:active:not(.dis){border-color:var(--cy)}
+/* Combo & Animations */
+.combo-display{position:fixed;top:60px;right:10px;background:linear-gradient(135deg,#ff6b35,#f7931e);color:#fff;padding:8px 14px;border-radius:20px;font-weight:bold;font-size:.8rem;z-index:150;opacity:0;transform:scale(0.5);transition:all .3s}
+.combo-display.show{opacity:1;transform:scale(1)}
+.combo-display.mega{background:linear-gradient(135deg,#e74c3c,#9b59b6);animation:comboPulse .5s infinite}
+@keyframes comboPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.xp-float{position:fixed;font-weight:bold;font-size:1.2rem;color:var(--yl);pointer-events:none;z-index:200;animation:floatUp 1.5s ease-out forwards}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-60px)}}
+.confetti{position:fixed;width:10px;height:10px;z-index:300;pointer-events:none;animation:confettiFall 3s linear forwards}
+@keyframes confettiFall{0%{opacity:1;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+.screen-flash{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:100;opacity:0;transition:opacity .1s}
+.screen-flash.correct{background:rgba(39,174,96,0.3);opacity:1}
+.screen-flash.wrong{background:rgba(192,57,43,0.3);opacity:1}
+.lvl-up-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,var(--yl),#e67e22);color:var(--dk);padding:30px 50px;border-radius:20px;text-align:center;z-index:250;transition:transform .3s}
+.lvl-up-modal.show{transform:translate(-50%,-50%) scale(1)}
+.lvl-up-modal h2{font-size:2rem;margin-bottom:5px}
+.lvl-up-modal p{font-size:1rem}
+.bookmark-btn{position:absolute;top:10px;right:10px;background:none;border:none;font-size:1.2rem;cursor:pointer;opacity:0.5}
+.bookmark-btn.active{opacity:1}
+.settings-btn{position:fixed;bottom:15px;right:15px;background:var(--md);border:2px solid var(--lt);border-radius:50%;width:45px;height:45px;font-size:1.3rem;cursor:pointer;z-index:50}
+.settings-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:300;display:none;align-items:center;justify-content:center}
+.settings-modal.show{display:flex}
+.settings-box{background:var(--md);border:2px solid var(--cy);border-radius:15px;padding:20px;width:90%;max-width:350px}
+.settings-box h3{color:var(--cy);margin-bottom:15px;font-size:1rem}
+.setting-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--lt)}
+.setting-row:last-child{border:none}
+.setting-row label{font-size:.8rem;color:#ccc}
+.toggle{width:50px;height:26px;background:var(--lt);border-radius:13px;position:relative;cursor:pointer}
+.toggle.on{background:var(--gn)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .2s}
+.toggle.on::after{left:27px}
+.font-btns{display:flex;gap:5px}
+.font-btns button{background:var(--lt);border:none;color:#fff;padding:5px 12px;border-radius:5px;cursor:pointer}
+.font-btns button.active{background:var(--cy);color:var(--dk)}
+.blitz-timer{background:linear-gradient(90deg,var(--rd),#e74c3c);color:#fff;text-align:center;padding:10px;border-radius:8px;font-size:1.2rem;font-weight:bold;margin-bottom:12px}
+.boss-select{display:grid;gap:10px}
+.boss-btn{background:var(--md);border:2px solid var(--lt);border-radius:12px;padding:15px;cursor:pointer;text-align:left}
+.boss-btn:active{border-color:var(--cy)}
+.boss-btn.locked{opacity:0.5;pointer-events:none}
+.boss-btn.completed{border-color:var(--gn)}
+.boss-btn h4{color:var(--cy);font-size:.9rem;margin-bottom:5px}
+.boss-btn p{color:#888;font-size:.7rem}
+.boss-btn .boss-icon{font-size:2rem;float:right}
+.bookmark-list{display:grid;gap:8px;max-height:60vh;overflow-y:auto}
+.bookmark-item{background:var(--md);border:1px solid var(--lt);border-radius:8px;padding:12px;position:relative}
+.bookmark-item .q{color:#ccc;font-size:.8rem;margin-bottom:8px}
+.bookmark-item .a{color:var(--gn);font-size:.75rem}
+.bookmark-item .remove{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--rd);font-size:1rem;cursor:pointer}
+.ans.correct{border-color:var(--gn);background:rgba(39,174,96,.2);color:var(--gn)}
+.ans.wrong{border-color:var(--rd);background:rgba(192,57,43,.2);color:var(--rd)}
+.ans.dis{pointer-events:none}
+.ans .ltr{display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;background:var(--lt);border-radius:50%;margin-right:10px;font-weight:bold;font-size:.75rem}
+.exp{display:none;background:rgba(41,128,185,.15);border:1px solid var(--bl);border-radius:8px;padding:12px;margin-top:12px}
+.exp.show{display:block}
+.exp h4{color:var(--cy);font-size:.75rem;margin-bottom:6px}
+.exp p{font-size:.8rem;color:#aaa;line-height:1.5}
+.nxt{display:none;width:100%;background:linear-gradient(90deg,var(--bl),var(--cy));border:none;border-radius:10px;padding:14px;margin-top:12px;cursor:pointer;font-size:.9rem;font-weight:bold;color:#fff}
+.nxt.show{display:block}
+.res{text-align:center;padding:15px 0}
+.res .ico{font-size:3.5rem;margin-bottom:10px}
+.res h2{font-size:1.4rem;color:var(--cy);margin-bottom:5px}
+.res>p{color:#888;margin-bottom:15px}
+.res-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:15px}
+.rs{background:var(--md);border-radius:10px;padding:12px}
+.rs .v{font-size:1.6rem;font-weight:900}
+.rs .l{font-size:.65rem;color:#888}
+.rs.c .v{color:var(--gn)}.rs.w .v{color:var(--rd)}.rs.x .v{color:var(--yl)}.rs.s .v{color:var(--cy)}
+.xpg{background:rgba(244,208,63,.1);border:2px solid var(--yl);border-radius:10px;padding:12px;margin-bottom:12px}
+.xpg h3{font-size:1.2rem;color:var(--yl)}.xpg p{font-size:.75rem;color:#888}
+.back{background:transparent;border:1px solid var(--lt);border-radius:6px;padding:8px 14px;cursor:pointer;font-size:.7rem;color:#888;margin-bottom:12px}
+.back:active{border-color:var(--cy);color:var(--cy)}
+.strk{position:fixed;top:12px;right:12px;background:linear-gradient(90deg,#e67e22,var(--rd));padding:6px 12px;border-radius:15px;font-size:.75rem;color:#fff;display:none;z-index:100}
+.strk.show{display:block}
+.lives{color:var(--rd);margin-bottom:10px;font-size:.85rem}
+.study-tabs{display:flex;gap:4px;overflow-x:auto;margin-bottom:10px;padding-bottom:5px}
+.stab{background:var(--md);border:1px solid var(--lt);border-radius:6px;padding:7px 10px;cursor:pointer;font-size:.65rem;color:#888;white-space:nowrap}
+.stab.active{border-color:var(--cy);color:var(--cy)}
+.study-content{background:var(--md);border:1px solid var(--lt);border-radius:10px;padding:14px;max-height:60vh;overflow-y:auto}
+.study-content h3{font-size:.95rem;color:var(--cy);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--lt)}
+.study-content h4{font-size:.85rem;color:var(--yl);margin:14px 0 8px}
+.study-content p{font-size:.78rem;line-height:1.6;color:#bbb;margin-bottom:10px}
+.study-content ul{margin:8px 0 12px 18px}
+.study-content li{font-size:.73rem;line-height:1.5;color:#aaa;margin-bottom:5px}
+.study-content table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.7rem}
+.study-content th,.study-content td{border:1px solid var(--lt);padding:6px;text-align:left}
+.study-content th{background:var(--lt);color:var(--cy)}
+.info{background:rgba(0,255,247,.05);border-left:3px solid var(--cy);padding:10px;margin:10px 0;border-radius:0 6px 6px 0}
+.info.warn{background:rgba(244,208,63,.08);border-color:var(--yl)}
+.info.danger{background:rgba(192,57,43,.08);border-color:var(--rd)}
+.info p{margin:0;font-size:.75rem}
+.wrong-review{margin-top:12px;background:var(--dk);border:1px solid var(--rd);border-radius:8px;padding:10px;max-height:150px;overflow-y:auto}
+.wrong-review h4{color:var(--rd);font-size:.75rem;margin-bottom:8px}
+.wrong-item{border-bottom:1px solid var(--lt);padding:8px 0;font-size:.72rem}
+.wrong-item:last-child{border:none}
+.wrong-item .q{color:#ccc;margin-bottom:4px}
+.wrong-item .a{color:var(--gn)}
+</style>
+</head>
+<body>
+<div class="strk" id="strk">🔥 <span id="strkN">0</span></div>
+<div class="container">
+<div class="hdr"><h1>☢️ TURBINE MASTER PRO</h1><p>Nuclear Steam Turbine Training v2.0</p></div>
+<div class="stats">
+<div class="stat"><span class="v" id="totXP">0</span><span class="l">XP</span></div>
+<div class="stat"><span class="v" id="totC">0</span><span class="l">CORRECT</span></div>
+<div class="stat"><span class="v" id="bestS">0</span><span class="l">STREAK</span></div>
+<div class="stat"><span class="v" id="totQ">0</span><span class="l">TOTAL</span></div>
+</div>
+<div class="xp-wrap">
+<div class="xp-bar" id="xpBar" style="width:0%"></div>
+<span class="xp-txt" id="xpTxt">0/100 XP</span>
+<span class="lvl" id="lvlB">LV 1</span>
+</div>
+<div class="scr active" id="menuScr">
+<div class="menu">
+<div class="mbtn" onclick="startDaily()" id="dailyBtn"><div class="ico">📅</div><div><h3>Daily Challenge</h3><p>15 questions - bonus XP!</p></div><span id="dailyStatus" style="margin-left:auto;font-size:.65rem;color:var(--gn)"></span></div>
+<div class="mbtn" onclick="startQuiz('quick')"><div class="ico">⚡</div><div><h3>Quick Quiz</h3><p>10 random questions</p></div></div>
+<div class="mbtn" onclick="showCats()"><div class="ico">📚</div><div><h3>Category Training</h3><p>Master specific systems</p></div></div>
+<div class="mbtn" onclick="startWeakAreas()"><div class="ico">🎯</div><div><h3>Weak Areas</h3><p>Focus on trouble spots</p></div></div>
+<div class="mbtn" onclick="startBlitz()"><div class="ico">⏱️</div><div><h3>Blitz Mode</h3><p>60 seconds - max questions!</p></div></div>
+<div class="mbtn" onclick="showBossBattles()"><div class="ico">👹</div><div><h3>Boss Battles</h3><p>Expert challenge rounds</p></div></div>
+<div class="mbtn" onclick="startQuiz('marathon')"><div class="ico">🏃</div><div><h3>Marathon</h3><p>50 questions</p></div></div>
+<div class="mbtn" onclick="startQuiz('challenge')"><div class="ico">🏆</div><div><h3>Challenge</h3><p>25 questions, timed</p></div></div>
+<div class="mbtn" onclick="startQuiz('survival')"><div class="ico">💀</div><div><h3>Survival</h3><p>3 lives - endless</p></div></div>
+<div class="mbtn" onclick="showFlashcards()"><div class="ico">🃏</div><div><h3>Flashcards</h3><p>Flip to learn</p></div></div>
+<div class="mbtn" onclick="showBookmarks()"><div class="ico">🔖</div><div><h3>Bookmarks</h3><p>Review saved questions</p></div></div>
+<div class="mbtn" onclick="showStudy()"><div class="ico">📖</div><div><h3>Study Guide</h3><p>Complete reference</p></div></div>
+<div class="mbtn" onclick="showStats()"><div class="ico">📊</div><div><h3>Statistics</h3><p>Performance by category</p></div></div>
+<div class="mbtn" onclick="showAchievements()"><div class="ico">🏅</div><div><h3>Achievements</h3><p>Track your progress</p></div></div>
+</div>
+</div>
+<div class="scr" id="catScr">
+<button class="back" onclick="showMenu()">← Back</button>
+<div class="cat-grid" id="catGrid"></div>
+</div>
+<div class="scr" id="quizScr">
+<button class="back" onclick="quitQuiz()">← Menu</button>
+<div class="q-hdr"><span id="qCat">Category</span><span id="qProg">1/10</span><span id="comboMult" style="color:var(--yl);font-weight:bold;display:none">x1.0</span></div>
+<div class="timer" id="timerWrap" style="display:none"><div class="timer-fill" id="timerFill"></div></div>
+<div class="blitz-timer" id="blitzWrap" style="display:none"><span id="blitzTime">60</span>s | <span id="blitzCount">0</span> answered</div>
+<div class="lives" id="livesD" style="display:none">LIVES: <span id="livesC">❤️❤️❤️</span></div>
+<div class="q-box" style="position:relative"><button class="bookmark-btn" id="bookmarkBtn" onclick="toggleBookmark()">🔖</button><p id="qTxt">Loading...</p></div>
+<div class="ans-grid" id="ansGrid"></div>
+<div class="exp" id="expBox"><h4>💡 Technical Note</h4><p id="expTxt"></p></div>
+<button class="nxt" id="nxtBtn" onclick="nextQ()">Next →</button>
+</div>
+<div class="scr" id="resScr">
+<div class="res">
+<div class="ico" id="resIco">🏆</div>
+<h2 id="resTitle">Great Work!</h2>
+<p id="resSub">Becoming a turbine expert!</p>
+<div class="xpg"><h3>+<span id="xpGained">0</span> XP</h3><p id="xpBreak">Base + Streak</p></div>
+<div class="res-stats">
+<div class="rs c"><div class="v" id="resC">0</div><div class="l">Correct</div></div>
+<div class="rs w"><div class="v" id="resW">0</div><div class="l">Wrong</div></div>
+<div class="rs x"><div class="v" id="resAcc">0%</div><div class="l">Accuracy</div></div>
+<div class="rs s"><div class="v" id="resStrk">0</div><div class="l">Streak</div></div>
+</div>
+<div class="wrong-review" id="wrongReview" style="display:none"><h4>📝 Review These:</h4><div id="wrongList"></div></div>
+<button class="nxt show" onclick="showMenu()" style="margin-top:12px">Menu</button>
+<button class="nxt show" onclick="retryQuiz()" style="margin-top:8px;background:var(--gn)">Retry</button>
+</div>
+</div>
+<div class="scr" id="studyScr">
+<button class="back" onclick="showMenu()">← Back</button>
+<div class="study-tabs" id="studyTabs"></div>
+<div class="study-content" id="studyContent"></div>
+</div>
+<div class="scr" id="flashScr">
+<button class="back" onclick="showMenu()">← Back</button>
+<div class="flash-cat" id="flashCatSel"></div>
+<div class="flash-card" id="flashCard" onclick="flipCard()">
+<div class="flash-inner" id="flashInner">
+<div class="flash-front" id="flashFront">Question</div>
+<div class="flash-back" id="flashBack">Answer</div>
+</div>
+</div>
+<div class="flash-nav">
+<button class="flash-btn" onclick="prevCard()">← Prev</button>
+<span id="flashProg">1/10</span>
+<button class="flash-btn" onclick="nextCard()">Next →</button>
+</div>
+<button class="flash-btn" onclick="shuffleCards()" style="width:100%;margin-top:10px">🔀 Shuffle</button>
+</div>
+<div class="scr" id="achieveScr">
+<button class="back" onclick="showMenu()">← Back</button>
+<h3 style="color:var(--cy);margin-bottom:12px;font-size:1rem">🏅 Achievements</h3>
+<div class="achieve-grid" id="achieveGrid"></div>
+</div>
+<div class="scr" id="statsScr">
+<button class="back" onclick="showMenu()">← Back</button>
+<h3 style="color:var(--cy);margin-bottom:12px;font-size:1rem">📊 Category Statistics</h3>
+<div class="stats-grid" id="statsGrid"></div>
+<div class="stats-summary" id="statsSummary"></div>
+</div>
+<div class="scr" id="bossScr">
+<button class="back" onclick="showMenu()">← Back</button>
+<h3 style="color:var(--cy);margin-bottom:12px;font-size:1rem">👹 Boss Battles</h3>
+<p style="font-size:.7rem;color:#888;margin-bottom:12px">Defeat bosses by scoring 80%+ on expert-level questions!</p>
+<div class="boss-select" id="bossSelect"></div>
+</div>
+<div class="scr" id="bookmarkScr">
+<button class="back" onclick="showMenu()">← Back</button>
+<h3 style="color:var(--cy);margin-bottom:12px;font-size:1rem">🔖 Bookmarked Questions</h3>
+<div class="bookmark-list" id="bookmarkList"></div>
+<button class="nxt show" onclick="startBookmarkQuiz()" id="bookmarkQuizBtn" style="margin-top:12px">Quiz Bookmarks</button>
+</div>
+</div>
+<style>
+.flash-cat{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.flash-cat-btn{background:var(--md);border:1px solid var(--lt);border-radius:5px;padding:5px 8px;font-size:.6rem;color:#888;cursor:pointer}
+.flash-cat-btn.active{border-color:var(--cy);color:var(--cy)}
+.flash-card{background:var(--md);border:2px solid var(--bl);border-radius:12px;min-height:200px;cursor:pointer;perspective:1000px;margin-bottom:12px}
+.flash-inner{position:relative;width:100%;height:200px;transition:transform 0.5s;transform-style:preserve-3d}
+.flash-card.flipped .flash-inner{transform:rotateY(180deg)}
+.flash-front,.flash-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;display:flex;align-items:center;justify-content:center;padding:16px;text-align:center;border-radius:10px}
+.flash-front{background:var(--md);color:#ddd;font-size:.9rem;line-height:1.4}
+.flash-back{background:linear-gradient(135deg,var(--lt),var(--md));transform:rotateY(180deg);color:var(--gn);font-size:.95rem;font-weight:bold;line-height:1.4}
+.flash-nav{display:flex;justify-content:space-between;align-items:center}
+.flash-btn{background:var(--md);border:1px solid var(--lt);border-radius:6px;padding:10px 16px;color:var(--cy);cursor:pointer;font-size:.75rem}
+.flash-btn:active{border-color:var(--cy)}
+#flashProg{color:var(--yl);font-size:.8rem}
+.achieve-grid{display:grid;gap:8px}
+.achieve-item{background:var(--md);border:1px solid var(--lt);border-radius:8px;padding:12px;display:flex;align-items:center;gap:10px;opacity:0.4}
+.achieve-item.unlocked{opacity:1;border-color:var(--yl)}
+.achieve-item .ico{font-size:1.5rem}
+.achieve-item .info h4{font-size:.8rem;color:var(--cy)}
+.achieve-item .info p{font-size:.65rem;color:#888}
+.achieve-item.unlocked .info h4{color:var(--yl)}
+.achieve-toast{position:fixed;bottom:-80px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--yl),#e67e22);color:var(--dk);padding:12px 20px;border-radius:10px;font-weight:bold;font-size:.8rem;z-index:200;transition:bottom 0.4s}
+.achieve-toast.show{bottom:20px}
+.stats-grid{display:grid;gap:8px;margin-bottom:16px}
+.stat-row{background:var(--md);border:1px solid var(--lt);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+.stat-row .cat-name{flex:1;font-size:.7rem;color:#ccc}
+.stat-row .cat-icon{font-size:1rem}
+.stat-row .stat-bar{flex:2;height:8px;background:var(--lt);border-radius:4px;overflow:hidden}
+.stat-row .stat-fill{height:100%;border-radius:4px;transition:width 0.3s}
+.stat-row .stat-pct{font-size:.65rem;width:40px;text-align:right;font-weight:bold}
+.stat-row.good .stat-fill{background:var(--gn)}
+.stat-row.ok .stat-fill{background:var(--yl)}
+.stat-row.weak .stat-fill{background:var(--rd)}
+.stat-row.none .stat-fill{background:#555}
+.stats-summary{background:var(--md);border:1px solid var(--lt);border-radius:8px;padding:12px;font-size:.7rem;color:#aaa;text-align:center}
+</style>
+<div class="achieve-toast" id="achieveToast">🏆 Achievement Unlocked!</div>
+<div class="combo-display" id="comboDisp">🔥 2x COMBO</div>
+<div class="screen-flash" id="screenFlash"></div>
+<div class="lvl-up-modal" id="lvlUpModal"><h2>⬆️ LEVEL UP!</h2><p>Level <span id="newLvl">2</span></p></div>
+<button class="settings-btn" onclick="toggleSettings()">⚙️</button>
+<div class="settings-modal" id="settingsModal">
+<div class="settings-box">
+<h3>⚙️ Settings</h3>
+<div class="setting-row"><label>Sound Effects</label><div class="toggle on" id="sndToggle" onclick="toggleSetting('sound')"></div></div>
+<div class="setting-row"><label>Vibration</label><div class="toggle on" id="vibToggle" onclick="toggleSetting('vibrate')"></div></div>
+<div class="setting-row"><label>Animations</label><div class="toggle on" id="animToggle" onclick="toggleSetting('anim')"></div></div>
+<div class="setting-row"><label>Font Size</label><div class="font-btns"><button onclick="setFont('s')">S</button><button class="active" onclick="setFont('m')">M</button><button onclick="setFont('l')">L</button></div></div>
+<div class="setting-row"><label>Reset Progress</label><button style="background:var(--rd);border:none;color:#fff;padding:8px 16px;border-radius:6px;cursor:pointer" onclick="resetProgress()">Reset</button></div>
+<button class="nxt show" onclick="toggleSettings()" style="margin-top:15px;width:100%">Close</button>
+</div>
+</div>
+<script>
+// STATE
+let G={xp:0,lvl:1,xpNext:100,correct:0,bestStreak:0,totalAnswered:0};
+try{const s=localStorage.getItem('turbinePro');if(s)G={...G,...JSON.parse(s)};}catch(e){}
+
+// QUESTIONS - 250+ TOTAL
+const Q={
+fundamentals:{name:"Turbine Fundamentals",icon:"⚙️",qs:[
+{q:"What is the primary function of a steam turbine in a nuclear power plant?",a:["Convert thermal energy to mechanical energy","Cool the reactor","Pump feedwater","Control reactor power"],c:0,e:"Steam turbines convert thermal energy in steam to rotational mechanical energy for electricity generation."},
+{q:"What turbine arrangement is most common in large nuclear plants?",a:["Tandem-compound double-flow","Single-cylinder","Cross-compound","Simple impulse"],c:0,e:"Tandem-compound double-flow uses one HP and multiple LP turbines on single shaft."},
+{q:"What is the typical speed for a 60 Hz nuclear turbine?",a:["1800 RPM","3600 RPM","1500 RPM","3000 RPM"],c:0,e:"Nuclear turbines run at 1800 RPM (half-speed) to allow larger blade designs."},
+{q:"What is the typical speed for a 50 Hz nuclear turbine?",a:["1500 RPM","3000 RPM","1800 RPM","3600 RPM"],c:0,e:"50 Hz systems use 1500 RPM (half-speed) turbines."},
+{q:"Why do nuclear turbines run at half-speed?",a:["Lower steam temps need longer blades","Regulations require it","Reduces radiation","Generator limits"],c:0,e:"Saturated steam needs more volume = longer blades = half speed for stress limits."},
+{q:"What is the function of the turning gear?",a:["Rotate rotor slowly to prevent bowing","Emergency power","Control speed","Lubricate bearings"],c:0,e:"Turning gear rotates rotor at 2-5 RPM to prevent thermal bowing."},
+{q:"What is typical turning gear speed?",a:["2-5 RPM","50-100 RPM","500 RPM","1800 RPM"],c:0,e:"Turning gear operates at 2-5 RPM to keep rotor moving slowly."},
+{q:"When should turning gear be engaged?",a:["During startup, shutdown, and when rotor is hot","Only during startup","Only at full speed","Never"],c:0,e:"Turning gear prevents bowing whenever rotor is hot but not at operating speed."},
+{q:"What is moisture separation?",a:["Removing water droplets between HP and LP","Separating tritium","Filtering feedwater","Removing gases"],c:0,e:"MSRs remove water droplets from HP exhaust to prevent LP blade erosion."},
+{q:"What moisture enters the HP turbine?",a:["0.25% or less","5-10%","15-20%","Completely dry"],c:0,e:"Steam enters HP at ~0.25% moisture (saturated)."},
+{q:"What moisture is at HP exhaust?",a:["10-15%","0.25%","25-30%","50%"],c:0,e:"Moisture increases to 10-15% at HP exhaust due to expansion."},
+{q:"What blade design is used in LP last stages?",a:["Twisted, tapered with erosion shields","Straight impulse","Symmetric reaction","Solid without shields"],c:0,e:"Last-stage blades are twisted/tapered with stellite erosion shields."},
+{q:"What is the purpose of extraction steam?",a:["Heat feedwater","Reactor control","Cool bearings","Supply condenser"],c:0,e:"Extraction steam heats feedwater (regenerative heating) improving efficiency."},
+{q:"How many stages of feedwater heating are typical?",a:["5-7 stages","1-2 stages","10-12 stages","None"],c:0,e:"5-7 stages of feedwater heating typical for good efficiency."},
+{q:"What is the function of gland seals?",a:["Prevent air/steam leakage at shaft","Seal condenser","Prevent oil leaks","Maintain containment"],c:0,e:"Gland seals use steam to seal shaft penetrations."},
+{q:"What is differential expansion?",a:["Different thermal growth of rotor vs casing","Blade expansion","Bearing clearance","Coupling growth"],c:0,e:"Rotor and casing expand at different rates - must prevent rubs."},
+{q:"What is typical nuclear HP inlet temperature?",a:["545-560°F","1000°F","300°F","800°F"],c:0,e:"Nuclear uses saturated steam ~545-560°F."},
+{q:"What is typical nuclear HP inlet pressure?",a:["800-1000 psig","100 psig","2000 psig","50 psig"],c:0,e:"HP inlet typically 800-1000 psig from steam generators."},
+{q:"What is typical LP exhaust pressure?",a:["1-3 in Hg absolute (vacuum)","Atmospheric","50 psig","200 psig"],c:0,e:"LP exhausts to condenser vacuum for maximum energy extraction."},
+{q:"What is leaving loss?",a:["Kinetic energy in exhaust velocity","Steam leakage","Heat loss","Friction"],c:0,e:"Leaving loss is kinetic energy remaining in exhaust steam."},
+{q:"What is a turbine stage?",a:["Nozzles plus rotating blades","Entire HP section","One blade","Bearing assembly"],c:0,e:"A stage = stationary nozzles + rotating blades."},
+{q:"What is reaction blading?",a:["Pressure drop in both nozzles and blades","Impulse only","No pressure drop","Fixed angles"],c:0,e:"Reaction blading has pressure drops in both nozzles and rotating blades."},
+{q:"What is impulse blading?",a:["All pressure drop in nozzles only","Pressure drop in blades only","Equal drops","No pressure change"],c:0,e:"Impulse has all expansion in nozzles, blades only redirect steam."},
+{q:"What causes rotor bow?",a:["Uneven cooling/thermal distortion","Normal operation","High speed","Low oil"],c:0,e:"Bow from uneven cooling - turning gear prevents this."},
+{q:"What is the purpose of the MSR?",a:["Remove moisture and reheat steam","Generate steam","Cool exhaust","Control speed"],c:0,e:"MSR removes moisture and reheats steam between HP and LP turbines."},
+{q:"How many reheat stages in a typical MSR?",a:["Two stages","One stage","Four stages","None"],c:0,e:"Typically two reheat stages - extraction steam then main steam."},
+{q:"What is MSR moisture removal efficiency?",a:["99%+ removal","50%","75%","90%"],c:0,e:"MSRs remove 99%+ of moisture from HP exhaust."},
+{q:"What is crossover piping?",a:["Piping between HP exhaust and LP inlet","Extraction piping","Drain piping","Seal piping"],c:0,e:"Crossover carries steam from HP through MSR to LP turbines."},
+{q:"What does double-flow mean?",a:["Steam enters center, flows both directions","Two turbines","Twice the flow","Double pressure"],c:0,e:"Double-flow LP has steam entering center and flowing both ways."},
+{q:"Why is double-flow used in LP turbines?",a:["Balances axial thrust forces","More power","Simpler design","Lower cost"],c:0,e:"Opposite flows cancel axial thrust from steam momentum."},
+{q:"What is a balance piston?",a:["Equalizes pressure to reduce thrust","Controls speed","Balances rotor weight","Seals steam"],c:0,e:"Balance piston uses pressure difference to offset thrust from blading."},
+{q:"What is blade tip speed limit concern?",a:["Centrifugal stress increases with speed squared","Erosion only","Noise","Vibration only"],c:0,e:"Stress proportional to (speed)² - sets maximum blade length at given RPM."},
+{q:"What is a diaphragm in a steam turbine?",a:["Stationary assembly holding nozzles","Rotating disc","Seal","Bearing"],c:0,e:"Diaphragm holds stationary nozzles/blades between rotating stages."},
+{q:"What is the function of nozzles?",a:["Accelerate steam and direct it to blades","Slow steam down","Seal stages","Support rotor"],c:0,e:"Nozzles convert pressure to velocity, directing steam at proper angle."}
+]},
+
+ge:{name:"GE Turbines",icon:"🔧",qs:[
+{q:"What HP casing design does GE use?",a:["Double-shell horizontal split","Single-shell vertical","Welded drum","Segmented ring"],c:0,e:"GE uses double-shell with horizontal split joints."},
+{q:"What is the advantage of GE double-shell design?",a:["Inner shell can expand independently","Lower cost","Easier to build","Lighter weight"],c:0,e:"Inner shell expands freely, reducing thermal stress on outer casing."},
+{q:"What bearing type does GE use for journals?",a:["Tilting pad","Plain sleeve","Rolling element","Magnetic"],c:0,e:"GE uses tilting pad bearings that adjust to load and prevent oil whirl."},
+{q:"How many pads in a typical GE tilting pad bearing?",a:["4-5 pads","2 pads","8-10 pads","1 pad"],c:0,e:"Typically 4-5 pads arranged around the journal."},
+{q:"What speed trips GE overspeed protection?",a:["110-111% rated","105%","120%","100%"],c:0,e:"Mechanical bolts trip at 110-111% speed."},
+{q:"How do GE mechanical overspeed bolts work?",a:["Centrifugal force throws bolt outward","Spring loaded","Hydraulic","Electronic signal"],c:0,e:"At overspeed, centrifugal force overcomes spring, bolt flies out and trips."},
+{q:"What is GE bearing lube pressure?",a:["15-25 psig","100-150 psig","5 psig","50 psig"],c:0,e:"Bearing lube is 15-25 psig. Control oil is 100+ psig."},
+{q:"What is GE control oil pressure?",a:["100-150 psig","15-25 psig","5 psig","500 psig"],c:0,e:"GE hydraulic control operates at 100-150 psig."},
+{q:"What thrust bearing does GE use?",a:["Self-equalizing tilting pad","Plain flat","Ball thrust","Tapered roller"],c:0,e:"Self-equalizing tilting pad distributes load evenly."},
+{q:"What bolt pattern for GE casing assembly?",a:["Star pattern","Sequential","Random","All at once"],c:0,e:"Star pattern ensures uniform loading."},
+{q:"Why use star pattern for bolting?",a:["Prevents casing distortion from uneven loading","Faster","Easier","Required by code"],c:0,e:"Alternating opposite bolts distributes load evenly as torque is applied."},
+{q:"What does GE Mark VIe control?",a:["Speed, load, all protection","Trips only","SG levels","Reactor power"],c:0,e:"Mark VIe manages speed, load, valves, and protection."},
+{q:"What logic does Mark VIe use for critical functions?",a:["Triple modular redundant (TMR)","Single channel","Dual","Analog"],c:0,e:"TMR uses three channels with 2-out-of-3 voting for reliability."},
+{q:"What is typical GE HP tip clearance?",a:["15-25 mils","1-2 mils","100 mils","Zero"],c:0,e:"HP tip clearances typically 15-25 mils radial."},
+{q:"What vibration level is normal for GE turbines?",a:["Less than 3 mils pk-pk","10 mils","25 mils","1 mil"],c:0,e:"Normal operation under 3 mils pk-pk."},
+{q:"What vibration triggers GE alert?",a:["5-6 mils pk-pk","1 mil","10 mils","25 mils"],c:0,e:"Alert typically at 5-6 mils pk-pk."},
+{q:"What vibration trips GE turbines?",a:["8-10 mils pk-pk","1 mil","25 mils","50 mils"],c:0,e:"Trip at 8-10 mils. Alert at 5-6 mils. Normal under 3 mils."},
+{q:"What bearing temp indicates alarm?",a:["200-220°F","100°F","300°F","400°F"],c:0,e:"Alarm above 200-220°F. Normal is 150-180°F."},
+{q:"What is normal GE bearing metal temperature?",a:["150-180°F","100°F","250°F","300°F"],c:0,e:"Normal bearing metal temps 150-180°F."},
+{q:"What type of MSR does GE use?",a:["Chevron separators with tube bundles","Cyclone only","Demister pads","Vortex"],c:0,e:"Chevron moisture separators followed by tube bundle reheaters."},
+{q:"What material are GE LP last-stage blades?",a:["Titanium or high-strength steel","Aluminum","Cast iron","Bronze"],c:0,e:"Titanium or special steels for strength and corrosion resistance."},
+{q:"How does GE protect last-stage blades from erosion?",a:["Stellite shields on leading edges","Coating entire blade","No protection","Sacrificial layer"],c:0,e:"Stellite strips brazed to leading edges resist water droplet erosion."},
+{q:"What is GE's approach to LP blade attachment?",a:["Axial entry fir-tree dovetail","Pinned roots","Welded","Circumferential entry"],c:0,e:"Fir-tree roots slide in axially and lock with pins."},
+{q:"What type of speed sensing does GE use?",a:["Magnetic pickups on toothed wheel","Optical only","Mechanical only","Pressure based"],c:0,e:"Magnetic pickups generate pulse from passing teeth for speed."},
+{q:"What is GE extraction non-return valve purpose?",a:["Prevent reverse flow into turbine on trip","Control flow","Filter steam","Reduce pressure"],c:0,e:"NRVs prevent high-pressure heater steam from reversing into turbine."}
+]},
+
+westinghouse:{name:"Westinghouse",icon:"🏭",qs:[
+{q:"What is Westinghouse LP rotor construction?",a:["Shrunk-on discs on shaft","Solid monoblock","Welded drum","Bolted"],c:0,e:"Discs thermally shrunk onto shaft for easier maintenance."},
+{q:"What is shrink fit interference?",a:["0.5-1.5 mils per inch","Zero","10 mils/inch","Slip fit"],c:0,e:"0.5-1.5 mils/inch interference. Discs heated to expand."},
+{q:"How are shrunk-on discs installed?",a:["Heat disc to expand bore, slide onto cold shaft","Press fit cold","Weld in place","Bolt together"],c:0,e:"Heating expands bore allowing assembly; cooling creates interference."},
+{q:"What temperature to heat discs for assembly?",a:["300-400°F above ambient","50°F","1000°F","Room temp"],c:0,e:"Heat 300-400°F above ambient for adequate expansion."},
+{q:"What valve does Westinghouse use?",a:["Combined stop/control bar-lift","Separate valves","Single throttle","Butterfly"],c:0,e:"Bar-lift: control opens first, then stop valve."},
+{q:"How does bar-lift mechanism work?",a:["Single bar lifts control first, then stop valve","Two separate bars","Hydraulic only","Cam operated"],c:0,e:"Bar engages control valve first, continues to lift stop valve."},
+{q:"What does 50% reaction mean?",a:["Half pressure drop in nozzles, half in blades","50% reaction type","50% efficiency","50% surface"],c:0,e:"Equal pressure drops across nozzles and blades."},
+{q:"What is Westinghouse TSI?",a:["Turbine Supervisory Instrumentation","Thermal Safety","Speed Indicator","Trip System"],c:0,e:"TSI monitors vibration, expansion, thrust, temps."},
+{q:"What parameters does TSI monitor?",a:["Vibration, eccentricity, expansion, thrust, speed","Speed only","Temperature only","Pressure only"],c:0,e:"TSI provides comprehensive turbine condition monitoring."},
+{q:"How is Westinghouse LP exhaust oriented?",a:["Downward to condenser","Axially","Radially","Upward"],c:0,e:"LP exhausts downward into condenser beneath."},
+{q:"What blade root does Westinghouse use?",a:["Fir-tree with pins","T-root","Dovetail","Welded"],c:0,e:"Fir-tree (Christmas tree) with 3-5 serrations."},
+{q:"How many serrations in fir-tree root?",a:["3-5 serrations","1","10","Smooth"],c:0,e:"3-5 serrations distribute centrifugal load across multiple surfaces."},
+{q:"What prevents axial blade movement in fir-tree?",a:["Locking pins","Friction only","Welding","Spring clips"],c:0,e:"Pins through root and disc prevent axial movement."},
+{q:"What alignment method does Westinghouse use?",a:["Piano wire and optical","Laser only","Level only","Self-aligning"],c:0,e:"Piano wire centerline with optical measurement."},
+{q:"What is piano wire alignment accuracy?",a:["0.5-1.0 mils","10 mils","25 mils","0.001 mils"],c:0,e:"Properly tensioned wire provides 0.5-1.0 mil accuracy."},
+{q:"What is stellite?",a:["Cobalt-chromium erosion alloy","Stainless steel","Nickel alloy","Ceramic"],c:0,e:"Stellite resists water droplet erosion on blade edges."},
+{q:"How is stellite attached to blades?",a:["Brazed or welded","Bolted","Glued","Press fit"],c:0,e:"Stellite strips brazed or welded to blade leading edges."},
+{q:"What supports Westinghouse casings?",a:["Sliding feet with keys","Rigid bolts","Hung from above","Flexible mounts"],c:0,e:"Sliding feet allow thermal expansion while maintaining alignment."},
+{q:"What is Westinghouse approach to HP rotor?",a:["Solid forged monoblock","Shrunk-on discs","Welded drum","Bolted assembly"],c:0,e:"HP uses solid forging; LP uses shrunk-on discs."},
+{q:"How are Westinghouse bearing pedestals aligned?",a:["Adjustable chocks and shims","Fixed position","Self-aligning","Welded in place"],c:0,e:"Chocks and shims allow precise vertical and lateral adjustment."}
+]},
+
+siemens:{name:"Siemens",icon:"🔩",qs:[
+{q:"What is Siemens HP casing type?",a:["Barrel-type non-split","Horizontal split","Vertical split","Segmented"],c:0,e:"Barrel casing eliminates joint leakage, uniform expansion."},
+{q:"What is main advantage of barrel casing?",a:["No horizontal joint to leak","Easier maintenance","Lower cost","Lighter"],c:0,e:"Eliminating split joint prevents steam leakage at high temps."},
+{q:"How is barrel casing assembled?",a:["Inner components inserted axially","Split and bolted","Welded closed","Cast as one piece"],c:0,e:"Internals slide in from end, closure head bolted on."},
+{q:"What blading does Siemens use?",a:["3D-optimized varying root to tip","Constant section","Velocity-compounded","Flat plate"],c:0,e:"3D profiles optimized for local flow at each position."},
+{q:"What about Siemens last-stage blades?",a:["Among longest in industry","Shortest","Medium","Variable"],c:0,e:"Longest blades (1.5+ m) for maximum exhaust area."},
+{q:"Why are longer last-stage blades better?",a:["More exhaust area reduces leaving losses","Stronger","Cheaper","Required"],c:0,e:"Larger annular area = lower exit velocity = less energy lost."},
+{q:"What is active clearance control?",a:["Varying casing temp to adjust clearances","Mechanical seals","Manual adjustment","Blade movement"],c:0,e:"Thermal adjustment of casing diameter controls clearance."},
+{q:"How does active clearance control work?",a:["Heat or cool casing to expand/contract","Move blades","Adjust bearings","Change speed"],c:0,e:"Controlled heating/cooling changes casing diameter relative to rotor."},
+{q:"What is cold start warming rate limit?",a:["100-150°F per hour","1000°F/hr","10°F/hr","No limit"],c:0,e:"Limited to 100-150°F/hr to prevent thermal stress."},
+{q:"Why limit warming rate?",a:["Prevent thermal stress and cracking","Save fuel","Reduce noise","Protect generator"],c:0,e:"Rapid temp changes create thermal gradients = stress = cracks."},
+{q:"What seals does Siemens use at HP shaft?",a:["Labyrinth with gland steam","Carbon rings","Mechanical face","Brush only"],c:0,e:"Labyrinth seals with 10-30 teeth and gland steam."},
+{q:"How many labyrinth teeth typical?",a:["10-30 teeth","1-2","50-100","Smooth"],c:0,e:"Multiple teeth create successive pressure drops."},
+{q:"What is SPPA-T3000?",a:["Siemens digital control system","A valve type","Bearing design","Blade material"],c:0,e:"SPPA-T3000 is Siemens integrated turbine control system."},
+{q:"What coupling does Siemens typically use?",a:["Rigid flanged with fitted bolts","Flexible gear","Quill shaft","Hydraulic"],c:0,e:"Rigid flanged couplings with interference fit bolts."},
+{q:"What is a fitted bolt?",a:["Interference fit - no clearance in hole","Loose fit","Standard bolt","Self-tapping"],c:0,e:"Fitted bolts have body-to-hole interference for precise alignment."},
+{q:"What maintenance approach does Siemens emphasize?",a:["Condition-based monitoring","Time-based only","Run-to-failure","Annual teardown"],c:0,e:"Condition-based using continuous monitoring data."}
+]},
+
+lube:{name:"Lube Oil Systems",icon:"🛢️",qs:[
+{q:"What is MOP function?",a:["Supply bearing and control oil","Emergency only","Seal oil","Cooling"],c:0,e:"Shaft-driven MOP provides lube (15-25 psi) and control (100+ psi)."},
+{q:"How is MOP driven?",a:["Shaft-driven from turbine","Electric motor","Steam turbine","Diesel"],c:0,e:"MOP is shaft-driven - output increases with speed."},
+{q:"At what speed does MOP provide adequate pressure?",a:["Above 90-95% rated speed","Any speed","Only at 100%","Below 50%"],c:0,e:"MOP needs near full speed for full pressure output."},
+{q:"What is AOP purpose?",a:["Oil during startup/shutdown","Emergency only","Reduction gear","Tank level"],c:0,e:"Motor-driven AOP until MOP has enough output."},
+{q:"When does AOP start?",a:["Before startup and below 90% speed","Emergency only","Operator command","Continuous"],c:0,e:"AOP starts before startup and below ~90% speed."},
+{q:"When does AOP stop during startup?",a:["When MOP pressure is adequate (above 90% speed)","Never","At 50% speed","Operator decision"],c:0,e:"AOP hands off to MOP when speed/pressure sufficient."},
+{q:"What activates EOP?",a:["Low oil pressure","High temp","High vibration","Manual only"],c:0,e:"EOP (DC motor) on low pressure - last defense."},
+{q:"Why is EOP DC motor driven?",a:["Operates on battery during AC loss","More efficient","Smaller","Required"],c:0,e:"DC with battery backup works during station blackout."},
+{q:"What is typical EOP start pressure setpoint?",a:["8-10 psig","25 psig","1 psig","50 psig"],c:0,e:"EOP starts on low pressure, typically 8-10 psig."},
+{q:"What oil for nuclear turbines?",a:["ISO VG 32 or 46 mineral","Synthetic","Vegetable","Silicone"],c:0,e:"ISO VG 32/46 mineral oil with good oxidation stability."},
+{q:"What does ISO VG 32 mean?",a:["32 centistokes at 40°C","32% purity","32 additives","Batch 32"],c:0,e:"32 centistokes kinematic viscosity at 40°C."},
+{q:"When is ISO VG 46 used instead of 32?",a:["Higher bearing loads or temperatures","Lower loads","Colder climates","No difference"],c:0,e:"VG 46 (thicker) for higher loads or operating temps."},
+{q:"What is oil supply temperature?",a:["100-120°F","50°F","200°F","Room temp"],c:0,e:"Oil supplied at 100-120°F for proper viscosity."},
+{q:"What is drain temperature from bearings?",a:["130-160°F","Same as supply","250°F","Below supply"],c:0,e:"Oil drains at 130-160°F showing heat absorbed."},
+{q:"What does high drain temp indicate?",a:["Excessive heat generation in bearing","Normal","Cold oil","Good cooling"],c:0,e:"High drain temp means bearing generating more heat than normal."},
+{q:"What happens to viscosity with temp increase?",a:["Decreases","Increases","Same","Solidifies"],c:0,e:"Viscosity decreases - too hot = too thin = damage."},
+{q:"What is viscosity index?",a:["Measure of viscosity change with temperature","Acid content","Water content","Particle count"],c:0,e:"Higher VI = less viscosity change with temperature."},
+{q:"What is acceptable water in oil?",a:["Less than 500 ppm","5%","Any amount","None possible"],c:0,e:"Good oil <500 ppm. Above 1000 ppm needs conditioning."},
+{q:"What TAN indicates change needed?",a:["Above 0.3-0.5","Above 5.0","Below 0.1","Not important"],c:0,e:"TAN above 0.3-0.5 indicates oxidation."},
+{q:"What is TAN?",a:["Total Acid Number - oxidation indicator","Temperature","Additive content","Viscosity"],c:0,e:"TAN measures acidic compounds from oil degradation."},
+{q:"What filter micron rating typical?",a:["10-25 microns","1 micron","100 microns","No filters"],c:0,e:"10-25 micron full-flow filtration typical."},
+{q:"What is duplex filter arrangement?",a:["Two filters - one online, one standby","Single filter","Four filters","No filters"],c:0,e:"Duplex allows filter change without shutting down."},
+{q:"What is a kidney loop system?",a:["Side-stream continuous purification","Main filter","Emergency filter","Seal oil"],c:0,e:"Kidney loop continuously polishes oil for enhanced cleanliness."},
+{q:"What does oil vapor extractor do?",a:["Remove oil mist from bearing housings","Add oil","Cool oil","Filter oil"],c:0,e:"Maintains slight vacuum to prevent oil mist escape."},
+{q:"What vacuum does vapor extractor maintain?",a:["0.5-2 inches water column","High vacuum","Positive pressure","Atmospheric"],c:0,e:"Slight vacuum (0.5-2 in WC) pulls mist to separator."},
+{q:"What is oil reservoir capacity sizing?",a:["8-10 times flow per minute","Equal to flow","100 times","Arbitrary"],c:0,e:"8-10 minute retention for air separation and cooling."}
+]},
+
+valves:{name:"Steam Valves",icon:"🔧",qs:[
+{q:"What is MSV closing time?",a:["Less than 0.3 seconds","1-2 seconds","5-10 seconds","30 seconds"],c:0,e:"MSVs close <0.3 sec to limit overspeed."},
+{q:"Why must MSV close so fast?",a:["Limit overspeed during load rejection","Save steam","Reduce noise","Prevent vibration"],c:0,e:"Steam in turbine continues driving - must stop quickly."},
+{q:"What drives MSV fast closure?",a:["Springs and dump valves","Motor","Manual","Gravity"],c:0,e:"Springs store energy. Dump valves release hydraulic fluid."},
+{q:"What is a dump valve?",a:["Rapidly releases hydraulic fluid for fast valve closure","Drains condensate","Relieves pressure","Vents steam"],c:0,e:"Dump valve rapidly dumps control fluid allowing spring closure."},
+{q:"What is characterized trim?",a:["Shaped for specific flow vs lift","Standard shape","Color coded","External"],c:0,e:"Shaped to provide desired flow characteristic."},
+{q:"What flow characteristic is typical for control valves?",a:["Linear or equal percentage","On-off","Quick opening","Parabolic"],c:0,e:"Linear or equal % provides good control through range."},
+{q:"Where are intercept valves?",a:["Between MSR and LP inlet","Turbine inlet","Condenser inlet","Extraction"],c:0,e:"IVs in hot reheat piping between MSR and LP."},
+{q:"Why are intercept valves needed?",a:["MSR steam volume would overspeed LP","Redundancy","Code","Cost"],c:0,e:"Large MSR volume could overspeed LP if not isolated."},
+{q:"What is LVDT?",a:["Position sensor","Pressure sensor","Temp sensor","Flow meter"],c:0,e:"Linear Variable Differential Transformer for position."},
+{q:"How does LVDT work?",a:["Magnetic core position changes transformer output","Strain gauge","Potentiometer","Optical"],c:0,e:"Core movement changes coupling between primary and secondary coils."},
+{q:"What lift for valve stroking?",a:["10-20% closure","90% closure","Full close","Full open"],c:0,e:"Stroke 10-20% to verify movement without affecting flow."},
+{q:"How often is valve stroking performed?",a:["Weekly to monthly","Daily","Yearly","Never"],c:0,e:"Regular stroking verifies freedom of movement."},
+{q:"What causes valve sticking?",a:["Deposits, corrosion, no movement","Too much lube","Cooling","Signals"],c:0,e:"Deposits, corrosion, prolonged non-movement."},
+{q:"What deposits cause valve sticking?",a:["Silica, copper oxides, corrosion products","Oil","Water","Steam"],c:0,e:"Silica and metal oxides deposit on stems and seats."},
+{q:"What is seat leakage?",a:["Steam passing through closed valve","External leak","Oil leak","Normal"],c:0,e:"Internal leakage past closed valve seat."},
+{q:"What seat leakage is acceptable?",a:["Less than 0.5% of rated flow","10%","Zero always","Any amount"],c:0,e:"Most specs allow <0.5% leakage when closed."},
+{q:"What is sequential valve operation?",a:["Open valves one at a time as load increases","All at once","Random","Alternating"],c:0,e:"Sequential minimizes throttling losses at partial load."},
+{q:"Why is sequential operation more efficient?",a:["Fully open valves have minimal throttling loss","Simpler","Faster","Required"],c:0,e:"Wide open valve = minimal pressure drop = better efficiency."}
+]},
+
+generator:{name:"Generator & H2",icon:"⚡",qs:[
+{q:"Why use hydrogen for cooling?",a:["High conductivity, low density","Cheapest","Regulations","Better insulation"],c:0,e:"H2: 7x conductivity, 1/14 density of air."},
+{q:"What is H2 thermal conductivity vs air?",a:["7 times higher","Same","Half","Twice"],c:0,e:"H2 conducts heat 7x better than air."},
+{q:"What is H2 density vs air?",a:["1/14 of air","Same","Half","Twice"],c:0,e:"H2 is much lighter - 1/14 the density of air."},
+{q:"What is windage loss?",a:["Rotor spinning friction in gas","Bearing friction","Electrical","External wind"],c:0,e:"Aerodynamic drag - lower gas density = lower loss."},
+{q:"How much can H2 reduce windage?",a:["Up to 90%","10%","No difference","Increases"],c:0,e:"H2 reduces windage up to 90% vs air."},
+{q:"What H2 purity maintained?",a:["95%+, often 98%+","50-60%","75%","Not important"],c:0,e:"Above 95% stays above explosive range (4-75% H2)."},
+{q:"What is explosive range for H2?",a:["4-75% H2 in air","0-4%","90-100%","Not explosive"],c:0,e:"H2-air explosive from 4% to 75%. Keep above 75%."},
+{q:"Why maintain H2 above 95%?",a:["Stay above upper explosive limit","Better cooling","Lower cost","Required"],c:0,e:"Above 75% H2 is above explosive range - 95%+ provides margin."},
+{q:"How much higher is seal oil than H2?",a:["3-5 psi higher","Same","10-20 lower","50 higher"],c:0,e:"Seal oil 3-5 psi above H2 ensures proper sealing."},
+{q:"Why must seal oil be higher pressure than H2?",a:["Oil flows toward gas, not reverse","Lower is fine","Same pressure OK","Prevents corrosion"],c:0,e:"Pressure differential ensures oil seals shaft, H2 stays in."},
+{q:"What is purge sequence removing H2?",a:["H2 → CO2 → Air","H2 → Air direct","Air → CO2 → H2","None"],c:0,e:"Use CO2 intermediate - never mix H2 and air directly."},
+{q:"What is purge sequence adding H2?",a:["Air → CO2 → H2","Direct air to H2","H2 → Air","No sequence"],c:0,e:"Displace air with CO2 first, then CO2 with H2."},
+{q:"Why use CO2 as intermediate purge gas?",a:["Inert - won't form explosive mix with H2 or air","Cheaper","Available","Denser"],c:0,e:"CO2 separates H2 and air, preventing explosive mixture."},
+{q:"What indicates H2 leak?",a:["Increased makeup, bubbles in seal oil","Higher output","Less cooling water","Lower bearing temps"],c:0,e:"Makeup rate, detectors, bubbles in seal oil."},
+{q:"What is typical H2 pressure?",a:["30-75 psig","5-10 psig","200 psig","Atmospheric"],c:0,e:"30-75 psig depending on machine size."},
+{q:"Why higher H2 pressure in larger generators?",a:["More cooling capacity needed","Lower is better","Same for all","Regulations"],c:0,e:"Higher pressure = denser gas = better heat transfer."},
+{q:"How many H2 coolers typical?",a:["4-6 coolers","1","2","10+"],c:0,e:"4-6 coolers provide redundancy - can operate with some out."},
+{q:"What if H2 cooler tube leaks?",a:["Water enters - insulation risk","H2 escapes only","No effect","Efficiency improves"],c:0,e:"Water in generator risks insulation damage, flashover."},
+{q:"What detects H2 cooler leaks?",a:["Liquid detectors in generator","Visual only","Temperature","Pressure drop"],c:0,e:"Liquid detectors sense water accumulation in generator."},
+{q:"What is H2 purity analyzer type?",a:["Thermal conductivity","Oxygen sensor","pH meter","Spectrometer"],c:0,e:"Thermal conductivity analyzers compare to reference gas."},
+{q:"What cools stator windings in large generators?",a:["Direct water cooling through hollow conductors","Air only","H2 only","Oil"],c:0,e:"Water flows through hollow stator bars for direct cooling."},
+{q:"What is stator cooling water conductivity limit?",a:["Less than 1 microsiemens/cm","Any conductivity","High conductivity better","Not measured"],c:0,e:"Ultra-pure water prevents electrical leakage."}
+]},
+
+maintenance:{name:"Maintenance",icon:"🔧",qs:[
+{q:"What is first step before maintenance?",a:["LOTO all energy, verify zero","Begin disassembly","Take vibration","Order parts"],c:0,e:"LOTO electrical, steam, hydraulics. Verify zero energy."},
+{q:"What does LOTO stand for?",a:["Lock Out Tag Out","Lube Oil Test Operation","Low Output Turbine Off","Level Out Turn Off"],c:0,e:"Lock Out Tag Out - isolate and secure all energy sources."},
+{q:"What energy sources must be locked out?",a:["Electrical, steam, hydraulic, stored energy","Electrical only","Steam only","None required"],c:0,e:"All energy: electrical, steam, hydraulic, springs, gravity."},
+{q:"What is runout measurement?",a:["Deviation from round while turning","Axial movement","Rotations","Bearing clearance"],c:0,e:"Dial indicator shows deviation from perfect circle."},
+{q:"What causes rotor runout?",a:["Bow, eccentricity, surface damage","Normal operation","Good balance","Proper alignment"],c:0,e:"Runout from bow, eccentricity, or journal damage."},
+{q:"What is acceptable runout?",a:["2-4 mils TIR","Zero required","25 mils","Not measured"],c:0,e:"Typical 2-4 mils TIR depending on location."},
+{q:"What is TIR?",a:["Total Indicator Reading","Turbine Inspection Report","Temperature Indication","Thrust Indication"],c:0,e:"TIR is total movement shown by indicator (full swing)."},
+{q:"How measure bearing clearance?",a:["Plastigage, lead wire, feeler gauge","Visual only","Calculated","Cannot measure"],c:0,e:"Several methods: Plastigage, lead wire, direct measure."},
+{q:"How does Plastigage work?",a:["Crushes between surfaces, width indicates clearance","Melts","Stretches","Changes color"],c:0,e:"Plastic strip crushes - compare width to scale."},
+{q:"What is typical journal bearing clearance?",a:["1.5-2.5 mils per inch diameter","Zero","10 mils/inch","Fixed value"],c:0,e:"Proportional to diameter, 1.5-2.5 mils/inch."},
+{q:"What clearance for 10-inch journal?",a:["15-25 mils","1-2 mils","100 mils","Zero"],c:0,e:"10 inch x 1.5-2.5 mils/inch = 15-25 mils."},
+{q:"What should good blue check show?",a:["Uniform contact 80%+ surface","One spot","No contact","100% coverage"],c:0,e:"Uniform blue transfer across 80%+ of mating surface."},
+{q:"What is blue check?",a:["Prussian blue contact pattern test","Color of steel","Oil test","Temperature test"],c:0,e:"Blue dye transfers showing contact pattern."},
+{q:"What is typical coupling alignment tolerance?",a:["1-2 mils offset and angularity","10 mils","25 mils","Not critical"],c:0,e:"Tight tolerances 1-2 mils for smooth operation."},
+{q:"What alignment methods are used?",a:["Dial indicator reverse, laser","Visual only","Level","Sound"],c:0,e:"Reverse indicator or laser alignment for precision."},
+{q:"What NDE detects surface cracks?",a:["Magnetic particle (MT)","UT only","Visual","RT"],c:0,e:"MT uses magnetic field and particles for surface cracks."},
+{q:"What NDE detects subsurface flaws?",a:["Ultrasonic (UT)","MT","PT","Visual"],c:0,e:"UT uses sound waves for internal flaws."},
+{q:"What is PT inspection?",a:["Dye penetrant for surface cracks","Pressure test","Power test","Performance test"],c:0,e:"Liquid penetrant finds surface-breaking cracks in any material."},
+{q:"When is MT used vs PT?",a:["MT for ferrous metals, PT for any material","Always MT","Always PT","Interchangeable"],c:0,e:"MT only works on magnetic materials, PT works on all."},
+{q:"What is as-found/as-left documentation?",a:["Record conditions before and after work","Inventory list","Procedure","Schedule"],c:0,e:"Documents condition found and condition left for trending."},
+{q:"What is proper lifting technique for rotors?",a:["Use designated lift points, balance slings","Any convenient point","Center only","Ends only"],c:0,e:"Lift at designed points to prevent bending or damage."},
+{q:"Why are rotor lifting points specifically located?",a:["Prevent bending stress during lift","Convenience","Appearance","No specific reason"],c:0,e:"Improper lift can bend rotor or damage journals."},
+{q:"What is witness mark purpose?",a:["Shows original position for reassembly","Decoration","Part number","Date stamp"],c:0,e:"Witness marks ensure components return to original orientation."},
+{q:"What is proper blade inspection focus?",a:["Leading edge erosion, root cracks, deposits","Color only","Weight","None needed"],c:0,e:"Erosion, cracking at root, and deposit buildup are key concerns."},
+{q:"What is soft foot?",a:["Uneven machine support causing distortion","Good support","Bearing wear","Coupling issue"],c:0,e:"Soft foot from uneven support distorts casing affecting alignment."}
+]},
+
+troubleshoot:{name:"Troubleshooting",icon:"🔍",qs:[
+{q:"What does 1X vibration indicate?",a:["Unbalance or bow","Oil whirl","Blade damage","Misalignment only"],c:0,e:"1X (running speed) indicates unbalance, bow, eccentricity."},
+{q:"What does 2X vibration indicate?",a:["Misalignment or cracked shaft","Unbalance","Oil whirl","Electrical"],c:0,e:"2X is characteristic of misalignment or cracked shaft."},
+{q:"What does sub-synchronous vibration indicate?",a:["Oil whirl or steam whirl","Unbalance","Misalignment","Normal"],c:0,e:"Sub-sync (~0.4-0.48X) often indicates fluid-induced instability."},
+{q:"What causes oil whirl?",a:["Oil forces exceed damping","Low flow","Wrong viscosity","Contamination"],c:0,e:"Oil whirl at ~40-48% speed when forces exceed damping."},
+{q:"What does rising thrust temp indicate?",a:["Excessive thrust or low oil flow","Normal","Improved efficiency","Lower steam"],c:0,e:"Rising temp = increased load or reduced oil flow."},
+{q:"What causes excessive axial thrust?",a:["Balance piston seal wear, load change","Normal","Good seals","Cold start"],c:0,e:"Worn seals change pressure distribution creating thrust."},
+{q:"What does rising LP exhaust temp indicate?",a:["Poor condenser vacuum","Improved efficiency","Excessive flow","Cold water"],c:0,e:"Exhaust temp = pressure. Higher temp = worse vacuum."},
+{q:"What causes poor condenser vacuum?",a:["Air leaks, fouled tubes, low cooling water","Too much vacuum","Cold water","Normal"],c:0,e:"Air in-leakage, fouling, or inadequate cooling water."},
+{q:"What does copper in oil indicate?",a:["Bearing cage or cooler tube wear","Normal","Good condition","Fuel"],c:0,e:"Copper from cage wear, cooler tubes, or pump wear."},
+{q:"What does iron in oil indicate?",a:["Gear or bearing wear","Normal","Good oil","Contamination"],c:0,e:"Iron from gear teeth, bearing surfaces, or shaft wear."},
+{q:"What causes water hammer?",a:["Rapid condensation creating vacuum","Velocity only","Normal startup","Slow valve"],c:0,e:"Rapid condensation creates vacuum slamming water."},
+{q:"How to prevent water hammer?",a:["Proper warm-up, drain condensate","Faster startup","More steam","Ignore it"],c:0,e:"Slow warming and good drainage prevent condensate accumulation."},
+{q:"What does high differential expansion indicate?",a:["Rotor/casing at different temps","Normal","Good clearances","Alignment issue"],c:0,e:"Rotor expanding more or less than casing - rub risk."},
+{q:"What does high eccentricity indicate?",a:["Rotor bow or rub damage","Normal operation","Good bearings","Alignment"],c:0,e:"Eccentricity = rotor not centered - bow or contact damage."},
+{q:"What causes efficiency loss over time?",a:["Blade erosion, deposits, seal wear","Normal","Better steam","Improved operation"],c:0,e:"Degradation from erosion, fouling, and wear increases losses."}
+]},
+
+safety:{name:"Safety Systems",icon:"🛡️",qs:[
+{q:"What is overspeed trip speed?",a:["110-111% rated","105%","120%","100%"],c:0,e:"Trip at 110-111% (about 1980-2000 for 1800 RPM)."},
+{q:"What RPM is 110% for 1800 RPM turbine?",a:["1980 RPM","1800 RPM","2000 RPM","1620 RPM"],c:0,e:"1800 x 1.10 = 1980 RPM."},
+{q:"What is redundancy in protection?",a:["Multiple independent systems","Single reliable","Manual backup","External monitoring"],c:0,e:"Multiple channels (2oo3, 2oo4) ensure protection if one fails."},
+{q:"What is 2oo3 voting logic?",a:["2 out of 3 channels must agree to trip","2 or 3","3 of 3","Any 1"],c:0,e:"Requires 2 of 3 channels to agree - prevents spurious trips."},
+{q:"What causes low oil pressure trip?",a:["Risk of bearing damage","Normal shutdown","Generator protect","Steam interrupt"],c:0,e:"Low pressure = inadequate lube = bearing damage."},
+{q:"What is typical low oil pressure trip setpoint?",a:["8-10 psig","25 psig","1 psig","50 psig"],c:0,e:"Trip before pressure too low for bearing protection."},
+{q:"What is water induction?",a:["Water entering hot turbine","Normal drainage","Generator cooling","Feedwater operation"],c:0,e:"Water causes thermal shock - can crack rotors and casings."},
+{q:"What damage does water induction cause?",a:["Thermal shock cracking, blade damage","Improved cooling","Better efficiency","No damage"],c:0,e:"Cold water on hot metal = rapid contraction = cracks."},
+{q:"What startup concerns exist?",a:["Thermal stress, brittleness, water, oil pressure","None","Electrical only","Overspeed only"],c:0,e:"Multiple: thermal stress, DBTT, water induction, oil."},
+{q:"What is DBTT?",a:["Ductile-Brittle Transition Temperature","Digital Bearing Test","Drain Bypass Trip","Data Base"],c:0,e:"Temperature below which steel becomes brittle."},
+{q:"Why is DBTT important for startup?",a:["Must warm above DBTT before loading","Not important","Only for shutdown","Generator concern"],c:0,e:"Loading brittle steel can cause catastrophic fracture."},
+{q:"What is thrust position monitoring for?",a:["Detect axial movement preventing rubs","Speed control","Temperature","Vibration"],c:0,e:"Excessive thrust position = potential blade/seal contact."},
+{q:"What causes high thrust position?",a:["Thrust bearing wear or excessive axial load","Normal","Good bearings","Alignment"],c:0,e:"Worn thrust bearing or abnormal loads shift rotor axially."},
+{q:"What is fail-safe design?",a:["System goes to safe state on failure","Ignores failures","Continues operating","Manual intervention"],c:0,e:"On failure, valves close, trips activate automatically."},
+{q:"How are trip solenoids typically arranged?",a:["Redundant - 2 or 3 per valve","Single","None","Manual only"],c:0,e:"Multiple solenoids ensure trip even if one fails."},
+{q:"What is turbine supervisory cabinet?",a:["Houses monitoring instruments and trip logic","Control room only","Bearing housing","Valve actuator"],c:0,e:"TSI cabinet contains instruments monitoring turbine condition."},
+{q:"What is emergency trip push button for?",a:["Manual immediate turbine shutdown","Normal stop","Speed control","Test only"],c:0,e:"Allows operator to immediately trip turbine if needed."},
+{q:"What happens on turbine trip?",a:["Stop valves close, extraction NRVs close, breaker opens","Slow coastdown","Nothing","Speed increases"],c:0,e:"All isolation valves close rapidly, generator disconnects."},
+{q:"What is latch check test?",a:["Verifies mechanical trip mechanism operation","Oil test","Vibration test","Speed test"],c:0,e:"Tests mechanical trip latch engagement and release."}
+]},
+
+condenser:{name:"Condenser Systems",icon:"💨",qs:[
+{q:"What is the function of the condenser?",a:["Convert exhaust steam back to water","Generate steam","Cool bearings","Heat feedwater"],c:0,e:"Condenser condenses LP exhaust steam to liquid for reuse."},
+{q:"Why is condenser vacuum important?",a:["Lower backpressure = more energy extraction","Not important","Higher is better","Affects generator only"],c:0,e:"Better vacuum allows more energy extraction from steam."},
+{q:"What is typical condenser vacuum?",a:["1-3 inches Hg absolute","Atmospheric","10 psig","50 in Hg"],c:0,e:"1-3 in Hg abs (about 27-29 in Hg vacuum)."},
+{q:"What is condenser tube material?",a:["Titanium, stainless, or copper alloy","Carbon steel","Plastic","Aluminum"],c:0,e:"Corrosion-resistant materials for long tube life."},
+{q:"Why is titanium popular for condenser tubes?",a:["Excellent corrosion resistance","Cheapest","Easiest to install","Required"],c:0,e:"Titanium resists saltwater and most cooling water chemistry."},
+{q:"What causes loss of condenser vacuum?",a:["Air leaks, tube fouling, low cooling water","Normal operation","High load","Good seals"],c:0,e:"Air in-leakage, fouled tubes, or insufficient cooling."},
+{q:"What is air in-leakage?",a:["Air entering vacuum system through leaks","Air injection","Ventilation","Normal"],c:0,e:"Air leaks in because system is below atmospheric pressure."},
+{q:"How is air removed from condenser?",a:["Air ejectors or vacuum pumps","Natural venting","Steam pressure","Not removed"],c:0,e:"Air ejectors or vacuum pumps continuously remove air."},
+{q:"What is steam jet air ejector?",a:["Uses steam to create vacuum and remove air","Compressor","Fan","Pump"],c:0,e:"Steam through nozzle creates low pressure drawing air out."},
+{q:"What is the hotwell?",a:["Condensate collection area in condenser","Hot water storage","Heater","Pump"],c:0,e:"Hotwell collects condensed steam for return to cycle."},
+{q:"What affects condenser heat transfer?",a:["Tube cleanliness, cooling water flow and temp","Steam pressure only","Time of day","Altitude"],c:0,e:"Fouling, flow rate, and inlet temp affect performance."},
+{q:"What is tube fouling?",a:["Deposits reducing heat transfer","Clean tubes","Normal","Good operation"],c:0,e:"Biological growth, scale, debris reduce heat transfer."},
+{q:"How is tube fouling cleaned?",a:["Mechanical cleaning or chemical treatment","Ignored","Replace tubes","Increase flow"],c:0,e:"Brush systems, balls, or chemicals remove deposits."},
+{q:"What is condenser tube leak concern?",a:["Cooling water contaminates condensate","Loss of vacuum only","No concern","Better cooling"],c:0,e:"Saltwater or impure cooling water damages steam cycle."},
+{q:"How are condenser tube leaks found?",a:["Helium leak test, conductivity monitoring","Visual only","Cannot find","Not important"],c:0,e:"Helium injected outside, detected inside, or conductivity rise."}
+]},
+
+feedwater:{name:"Feedwater Systems",icon:"💧",qs:[
+{q:"What is the purpose of feedwater heating?",a:["Improve cycle efficiency","Generate more steam","Cool turbine","Control pressure"],c:0,e:"Heating feedwater with extraction steam improves efficiency."},
+{q:"How much can feedwater heating improve efficiency?",a:["5-10% improvement","No improvement","50% improvement","1% maximum"],c:0,e:"Regenerative feedwater heating typically adds 5-10% efficiency."},
+{q:"What is an open feedwater heater?",a:["Steam and water mix directly","Tubes separate fluids","Closed system","No steam used"],c:0,e:"Direct contact heater - steam condenses directly into water."},
+{q:"What is a closed feedwater heater?",a:["Tubes separate steam and water","Direct mixing","No tubes","Open tank"],c:0,e:"Shell-and-tube with extraction steam outside tubes."},
+{q:"What is the deaerator?",a:["Open heater that removes dissolved gases","Filter","Pump","Valve"],c:0,e:"Deaerator removes O2 and CO2 to prevent corrosion."},
+{q:"Why is deaeration important?",a:["Dissolved oxygen causes corrosion","Not important","Adds oxygen","Controls pH"],c:0,e:"O2 in feedwater corrodes boiler tubes and steam lines."},
+{q:"What is final feedwater temperature typically?",a:["425-450°F","200°F","550°F","100°F"],c:0,e:"Final feedwater temp ~50-100°F below saturation temp."},
+{q:"What drives main feedwater pumps?",a:["Steam turbines or electric motors","Gravity","Manual","Compressed air"],c:0,e:"RFPT (steam turbine driven) or motor driven."},
+{q:"What is RFPT?",a:["Reactor Feed Pump Turbine","Rapid Flow Pump","Return Feed Pump","Recirculation Feed"],c:0,e:"Steam turbine that drives main feedwater pump."},
+{q:"What steam source for RFPT?",a:["Extraction steam from main turbine","Main steam","Auxiliary boiler","LP exhaust"],c:0,e:"Extraction steam provides efficient RFPT power source."},
+{q:"What is advantage of turbine-driven feed pump?",a:["Variable speed for flow control","Fixed speed","Lower cost","Simpler"],c:0,e:"Varying RFPT speed directly controls pump output."},
+{q:"What is typical main feed pump discharge pressure?",a:["1200-1500 psig","100 psig","500 psig","5000 psig"],c:0,e:"Must exceed SG pressure plus piping losses."},
+{q:"What is minimum recirculation flow?",a:["Protects pump from overheating at low flow","Maximum flow","Not needed","Saves energy"],c:0,e:"Minimum flow prevents pump damage from running at shutoff."},
+{q:"What happens if feed pump runs at shutoff?",a:["Overheating from recirculated energy","Better efficiency","Normal","Cooler operation"],c:0,e:"Energy stays in pump, heats water and pump components."},
+{q:"What is feedwater flow control based on?",a:["Steam generator level","Pressure only","Temperature only","Time"],c:0,e:"SG level is primary control input for feedwater flow."}
+]},
+
+exciter:{name:"Exciter Systems",icon:"🔌",qs:[
+{q:"What is the exciter's function?",a:["Provide DC current to generator rotor field","Cool generator","Drive turbine","Control speed"],c:0,e:"Exciter supplies DC field current that creates magnetic field in rotor."},
+{q:"What type of exciter is most common today?",a:["Static (thyristor) exciter","DC generator","AC alternator","Permanent magnet"],c:0,e:"Static exciters use thyristors to convert AC to controlled DC."},
+{q:"What is a brushless exciter?",a:["AC exciter with rotating rectifiers on shaft","No field current","DC machine","Static only"],c:0,e:"Rotating rectifiers eliminate slip rings and brushes."},
+{q:"What is the pilot exciter?",a:["Small PMG providing power to main exciter","Main exciter","Backup only","Speed sensor"],c:0,e:"Permanent magnet generator provides reliable power for excitation."},
+{q:"What does AVR stand for?",a:["Automatic Voltage Regulator","Auxiliary Voltage Relay","AC Voltage Rectifier","Amp-Volt Ratio"],c:0,e:"AVR automatically adjusts field current to maintain voltage."},
+{q:"What does AVR control?",a:["Generator terminal voltage","Speed","Frequency","Power factor only"],c:0,e:"AVR maintains constant terminal voltage by adjusting field current."},
+{q:"What is field forcing?",a:["Temporarily increasing field for fault recovery","Removing field","Normal operation","Cooling field"],c:0,e:"Ceiling voltage applied briefly to support voltage during faults."},
+{q:"What is ceiling voltage?",a:["Maximum exciter output voltage","Minimum voltage","Normal voltage","Ground reference"],c:0,e:"Ceiling voltage is maximum available for field forcing."},
+{q:"What are collector rings for?",a:["Transfer DC current to rotating field","Support bearings","Cooling","Sealing"],c:0,e:"Slip rings and brushes transfer excitation to rotor."},
+{q:"What is typical field current?",a:["500-5000 amps DC","10 amps","50,000 amps","1 amp"],c:0,e:"Large generators need hundreds to thousands of amps field current."},
+{q:"What is field ground detection for?",a:["Detect insulation failure in rotor winding","Measure current","Speed sensing","Cooling"],c:0,e:"Ground faults in field can cause rotor damage - must detect early."},
+{q:"Why is second ground fault in field dangerous?",a:["Creates short circuit burning rotor steel","No danger","Improves cooling","Normal operation"],c:0,e:"Second ground creates current path through rotor body."},
+{q:"What is loss of field protection?",a:["Trips generator on loss of excitation","Backup exciter","Manual control","Cooling system"],c:0,e:"LOF relay protects against loss of field current."},
+{q:"What happens on loss of field?",a:["Generator becomes induction motor, absorbs VARs","More power output","No effect","Speed increases"],c:0,e:"Without field, machine slips and pulls reactive power from system."}
+]},
+
+glandseals:{name:"Gland Seal System",icon:"💨",qs:[
+{q:"What is purpose of gland sealing steam?",a:["Seal shaft penetrations, prevent air/steam leakage","Cool shaft","Lubricate seals","Heat casing"],c:0,e:"Gland steam seals where shaft exits casing."},
+{q:"What is typical gland seal steam pressure?",a:["2-5 psig above atmospheric","100 psig","Vacuum","50 psig"],c:0,e:"Slight positive pressure prevents air in-leakage."},
+{q:"What is the gland steam condenser?",a:["Condenses leak-off steam from glands","Main condenser","Heater","Cooler"],c:0,e:"Gland condenser captures steam escaping from seals."},
+{q:"What vacuum does gland condenser maintain?",a:["Slight vacuum at gland outer packing","High vacuum","Positive pressure","Atmospheric"],c:0,e:"Vacuum draws steam inward rather than escaping to atmosphere."},
+{q:"What is labyrinth seal principle?",a:["Multiple restrictions create pressure drops","Rubbing contact","Liquid seal","Magnetic"],c:0,e:"Each tooth creates pressure drop, many teeth = low leakage."},
+{q:"What is typical labyrinth clearance?",a:["10-20 mils radial","Zero clearance","100 mils","1 inch"],c:0,e:"Small clearance limits flow while avoiding contact."},
+{q:"What happens if gland seal steam pressure too low?",a:["Air leaks into turbine/condenser","No effect","Better efficiency","Steam escapes"],c:0,e:"Low pressure allows air in-leakage hurting vacuum."},
+{q:"What happens if gland seal steam pressure too high?",a:["Steam leaks to atmosphere, wasted","Better sealing","No effect","Improved vacuum"],c:0,e:"Excess steam escapes outward - waste and potential hazard."},
+{q:"What is high pressure packing?",a:["Inner gland rings sealing against HP steam","Outer rings","Bearing seal","Valve packing"],c:0,e:"HP packing contains high pressure steam from escaping."},
+{q:"What is low pressure packing?",a:["Outer gland rings where seal steam is supplied","Inner rings","Condenser seal","Casing seal"],c:0,e:"LP packing is where sealing steam is introduced."},
+{q:"What is gland exhaust fan?",a:["Pulls steam/air mixture to gland condenser","Supplies seal steam","Cools glands","Pressurizes glands"],c:0,e:"Exhauster maintains vacuum drawing leakage to condenser."},
+{q:"What is carbon ring seal?",a:["Segmented carbon rings that contact shaft","Labyrinth type","Brush seal","Mechanical seal"],c:0,e:"Carbon rings are used in some designs, especially older units."},
+{q:"What damages labyrinth seal teeth?",a:["Rotor contact from rubs, thermal distortion","Normal wear","Oil","Steam"],c:0,e:"Contact bends/breaks teeth increasing leakage."}
+]},
+
+drains:{name:"Drain Systems",icon:"💧",qs:[
+{q:"Why are turbine drains critical?",a:["Remove condensate to prevent water damage","Not important","Cool turbine","Lubrication"],c:0,e:"Water in turbine causes thermal shock and blade damage."},
+{q:"What is water induction?",a:["Water entering turbine from external source","Normal drainage","Seal water","Cooling water"],c:0,e:"Water induction causes thermal shock - catastrophic."},
+{q:"What are startup drains for?",a:["Remove condensate during warm-up","Normal operation only","Cooling","Pressure relief"],c:0,e:"Open during startup to drain condensate from warming."},
+{q:"When are startup drains closed?",a:["After turbine is warmed and loaded","Never","Before startup","At full load only"],c:0,e:"Close drains once temperatures stabilized and loaded."},
+{q:"What is reheat drain protection?",a:["Prevents flooding of reheater with condensate","Cools reheater","Heats feedwater","Not important"],c:0,e:"Drains prevent water accumulation in MSR during startup."},
+{q:"What is a drain pot?",a:["Collects water from steam lines for level control","Steam trap","Pump","Filter"],c:0,e:"Drain pots collect water, level controls drain valves."},
+{q:"What is a steam trap function?",a:["Automatically drains condensate, blocks steam","Traps steam","Filters water","Pressure relief"],c:0,e:"Traps pass water but close on steam to prevent loss."},
+{q:"What happens if drain fails closed?",a:["Water accumulates, risk of water hammer/induction","No effect","Steam loss","Better efficiency"],c:0,e:"Blocked drain allows water buildup - dangerous."},
+{q:"What happens if drain fails open?",a:["Steam loss, reduced efficiency","Water damage","No effect","Better drainage"],c:0,e:"Open drain wastes steam but less dangerous than blocked."},
+{q:"What is extraction line drain?",a:["Removes condensate from extraction piping","Feeds heaters","Cools extraction","Pressurizes line"],c:0,e:"Extraction drains prevent water entering heaters or turbine."},
+{q:"What is crossover drain?",a:["Drains HP exhaust to LP piping","Main drain","Startup only","Seal drain"],c:0,e:"Crossover drains remove condensate between HP and LP."},
+{q:"What is drain cooler?",a:["Cools high-pressure drains before tank","Heats drains","Filters drains","Pumps drains"],c:0,e:"Flash tank or cooler handles high-energy drains safely."},
+{q:"What is blowdown?",a:["Intentional draining to remove impurities","Explosion","Normal drain","Pressure test"],c:0,e:"Blowdown removes concentrated impurities from vessels."}
+]},
+
+vibration:{name:"Vibration Analysis",icon:"📊",qs:[
+{q:"What is synchronous vibration?",a:["Vibration at running speed (1X)","Below running speed","Random","Twice speed"],c:0,e:"1X vibration = once per revolution, synchronous with speed."},
+{q:"What causes 1X vibration?",a:["Mass unbalance, bow, eccentricity","Misalignment only","Oil whirl","Electrical"],c:0,e:"1X from anything rotating with shaft - unbalance most common."},
+{q:"What is 2X vibration?",a:["Twice running speed vibration","Half speed","Running speed","Random"],c:0,e:"2X = two cycles per revolution."},
+{q:"What typically causes 2X?",a:["Misalignment, cracked shaft","Unbalance","Oil whirl","Blade loss"],c:0,e:"Misalignment classic 2X source; cracked shaft also."},
+{q:"What is sub-synchronous vibration?",a:["Vibration below running speed","Above running speed","At running speed","Random"],c:0,e:"Sub-sync is any frequency below 1X."},
+{q:"What causes sub-synchronous at 0.4-0.48X?",a:["Oil whirl instability","Unbalance","Misalignment","Blade pass"],c:0,e:"Oil whirl typically appears at 40-48% of running speed."},
+{q:"What is oil whirl?",a:["Self-excited instability from bearing oil film","Low oil","Wrong oil","Oil leak"],c:0,e:"Oil forces overcome damping creating sustained vibration."},
+{q:"What bearing prevents oil whirl?",a:["Tilting pad bearing","Plain sleeve","Ball bearing","Magnetic"],c:0,e:"Tilting pads break up oil wedge preventing whirl."},
+{q:"What is oil whip?",a:["Oil whirl locked to rotor critical speed","Low oil","Oil change","Normal"],c:0,e:"Whip occurs when whirl frequency meets critical speed."},
+{q:"What is a proximity probe?",a:["Eddy current sensor measuring shaft displacement","Temperature sensor","Pressure sensor","Speed sensor"],c:0,e:"Proximity probes measure shaft position relative to bearing."},
+{q:"What do accelerometers measure?",a:["Casing vibration/acceleration","Shaft displacement","Temperature","Pressure"],c:0,e:"Accelerometers on casing measure high-frequency vibration."},
+{q:"What is velocity measurement used for?",a:["Casing vibration - good for rolling element bearings","Shaft position","Temperature","Speed"],c:0,e:"Velocity integrates acceleration, better for some frequencies."},
+{q:"What is phase angle in vibration?",a:["Relationship between vibration peak and shaft position","Amplitude","Frequency","Speed"],c:0,e:"Phase shows where heavy spot is relative to reference."},
+{q:"Why is phase important for balancing?",a:["Shows where to add/remove weight","Not needed","Indicates amplitude","Measures speed"],c:0,e:"Phase angle tells which direction shaft is heavy."},
+{q:"What is a Bode plot?",a:["Amplitude and phase vs speed","Temperature plot","Pressure chart","Oil analysis"],c:0,e:"Bode shows vibration amplitude and phase through speed range."},
+{q:"What is a polar plot?",a:["Amplitude and phase on circular diagram","Temperature map","Rectangular plot","Bar chart"],c:0,e:"Polar plot shows vector relationship of amplitude and phase."},
+{q:"What is orbit plot?",a:["Shaft centerline path from X-Y probes","Planet orbit","Casing movement","Static position"],c:0,e:"Orbit shows actual shaft movement pattern in bearing."},
+{q:"What does circular orbit indicate?",a:["Pure unbalance","Misalignment","Rub","Oil whirl"],c:0,e:"Circular orbit typical of simple unbalance."},
+{q:"What does figure-8 orbit indicate?",a:["Misalignment","Unbalance","Normal","Rub"],c:0,e:"Figure-8 pattern characteristic of misalignment."},
+{q:"What is a critical speed?",a:["Speed where rotor natural frequency equals running speed","Normal speed","Maximum speed","Minimum speed"],c:0,e:"At critical speed, resonance amplifies vibration."},
+{q:"How are critical speeds handled?",a:["Accelerate through quickly, don't dwell","Run at critical","Avoid running","Slow down"],c:0,e:"Pass through criticals quickly to minimize resonant buildup."}
+]},
+
+controls:{name:"Control Systems",icon:"🎛️",qs:[
+{q:"What is EHC?",a:["Electro-Hydraulic Control system","Emergency High Control","Electric Heat Control","External Hydraulic Circuit"],c:0,e:"EHC uses electronic signals to control hydraulic valve actuators."},
+{q:"What replaced mechanical-hydraulic governors?",a:["Electronic digital control systems","Manual control","Pneumatic","Purely hydraulic"],c:0,e:"Digital electronic controls replaced older mechanical governors."},
+{q:"What is DEH?",a:["Digital Electro-Hydraulic control","Direct Electric Hydraulic","Dual Emergency Hydraulic","Digital Emergency Handler"],c:0,e:"DEH is GE's digital control system for turbine control."},
+{q:"What does the speed control loop do?",a:["Maintains turbine at setpoint speed","Controls temperature","Controls pressure","Controls vibration"],c:0,e:"Speed loop adjusts valve position to maintain speed setpoint."},
+{q:"What does the load control loop do?",a:["Maintains generator output at setpoint","Controls speed","Controls temperature","Controls voltage"],c:0,e:"Load loop adjusts valves to maintain MW output setpoint."},
+{q:"What is droop in speed control?",a:["Speed decrease as load increases","Speed increase","Constant speed","Random variation"],c:0,e:"4-5% droop typical - speed drops as load increases for stability."},
+{q:"Why is droop used?",a:["Allows load sharing between units","Improves efficiency","Required by code","Reduces wear"],c:0,e:"Droop allows parallel units to share load proportionally."},
+{q:"What is isochronous control?",a:["Zero droop - maintains exact speed","Maximum droop","Manual control","Emergency mode"],c:0,e:"Isochronous holds constant speed regardless of load."},
+{q:"When is isochronous used?",a:["Single unit supplying isolated load","Normal grid operation","All the time","Never"],c:0,e:"Isochronous only for isolated operation - unstable on grid."},
+{q:"What is valve position limiting?",a:["Prevents valves from opening beyond setpoint","Closes all valves","Speed limiting","Load limiting"],c:0,e:"VPL limits maximum valve opening for various reasons."},
+{q:"What is runback?",a:["Automatic load reduction on fault","Speed increase","Emergency trip","Manual reduction"],c:0,e:"Runback automatically reduces load when problem detected."},
+{q:"What signals can initiate runback?",a:["Condenser problems, feed pump loss, high temps","Speed only","Manual only","Voltage"],c:0,e:"Various plant problems can trigger automatic runback."},
+{q:"What is the turbine trip logic?",a:["Multiple inputs ORed together - any one trips","All must agree","Majority vote","Sequential"],c:0,e:"Any trip signal trips turbine - fail-safe design."},
+{q:"What is auto-synchronizing?",a:["Automatically matches speed/phase for breaker close","Manual sync only","Emergency feature","Load control"],c:0,e:"Auto-sync adjusts speed to match grid for smooth closing."},
+{q:"What must match before synchronizing?",a:["Voltage, frequency, phase angle","Voltage only","Speed only","Load"],c:0,e:"Must match voltage, frequency, and phase angle to grid."}
+]},
+
+startup:{name:"Startup/Shutdown",icon:"🚀",qs:[
+{q:"What is first step in turbine startup?",a:["Verify all prerequisites - oil, vacuum, drains","Roll to full speed","Close valves","Load generator"],c:0,e:"Check all systems ready before introducing steam."},
+{q:"What oil system check before startup?",a:["Verify AOP running, pressure adequate, temps OK","Just turn on MOP","Check color","No check needed"],c:0,e:"Oil pressure and flow must be established before rolling."},
+{q:"What vacuum required before startup?",a:["Typically 25+ inches Hg","Atmospheric","5 inches","No vacuum needed"],c:0,e:"Adequate vacuum needed for condenser to accept exhaust."},
+{q:"Why open startup drains?",a:["Remove condensate from warming process","Cool turbine","Increase pressure","Speed up startup"],c:0,e:"Drains remove water to prevent water induction."},
+{q:"What is roll to rated speed called?",a:["Heat soak or warming","Loading","Synchronizing","Tripping"],c:0,e:"Initial roll with holds for thermal soaking."},
+{q:"Why are there hold points during startup?",a:["Allow uniform heating, check parameters","Rest operators","Save steam","Required by law"],c:0,e:"Holds allow thermal equalization reducing stress."},
+{q:"What speeds typically have holds?",a:["Critical speeds and intermediate points","Only full speed","Only low speed","No holds"],c:0,e:"Holds below, at, and above critical speeds for checks."},
+{q:"What is checked during warm-up holds?",a:["Vibration, eccentricity, temps, expansion","Nothing","Speed only","Oil only"],c:0,e:"Monitor all parameters during holds for problems."},
+{q:"What indicates ready for loading?",a:["Stable operation, parameters normal, proper temps","Just reaching speed","Timer complete","Operator decision only"],c:0,e:"All parameters must be stable and within limits."},
+{q:"What is minimum load operation?",a:["Lowest stable generator output","No load","Full load","Half load"],c:0,e:"Minimum load for stable operation varies by unit."},
+{q:"What is loading rate limited by?",a:["Thermal stress in rotor and casing","Generator only","Operator preference","No limit"],c:0,e:"Too fast loading creates thermal gradients and stress."},
+{q:"What is typical loading rate?",a:["1-5% per minute","50% per minute","Instant","1% per hour"],c:0,e:"1-5% per minute typical depending on metal temps."},
+{q:"What starts shutdown sequence?",a:["Reduce load, then trip or coast down","Trip immediately","Full speed reverse","Emergency only"],c:0,e:"Normal shutdown reduces load before tripping."},
+{q:"Why reduce load before trip?",a:["Reduces mechanical and thermal transients","Required","Saves fuel","No reason"],c:0,e:"Gradual unloading easier on equipment than sudden trip."},
+{q:"When should turning gear engage after trip?",a:["When speed drops below engagement speed","Immediately","Never","After cool down"],c:0,e:"Turning gear engages at low speed to prevent bow."},
+{q:"How long on turning gear after shutdown?",a:["Until rotor is cool - often 24-48 hours","1 hour","10 minutes","Until next startup"],c:0,e:"Continue turning until temperature equalized."}
+]},
+
+bearings:{name:"Bearing Systems",icon:"⭕",qs:[
+{q:"What is primary function of journal bearing?",a:["Support rotor weight and control position","Drive rotation","Seal oil","Generate power"],c:0,e:"Journal bearings support radial loads from rotor weight."},
+{q:"What is primary function of thrust bearing?",a:["Control axial rotor position","Support weight","Drive rotation","Speed control"],c:0,e:"Thrust bearing handles axial forces from steam flow."},
+{q:"What type of lubrication in turbine bearings?",a:["Hydrodynamic - oil wedge supports shaft","Grease","Dry","Boundary"],c:0,e:"Oil wedge forms between shaft and bearing under rotation."},
+{q:"What creates the oil wedge?",a:["Shaft rotation dragging oil into converging gap","Pump pressure only","Gravity","Capillary action"],c:0,e:"Rotating shaft drags oil into wedge-shaped clearance."},
+{q:"What is bearing babbitt?",a:["Soft metal lining that protects shaft","Hard coating","Sealant","Lubricant additive"],c:0,e:"Babbitt is soft tin/lead alloy that wears preferentially."},
+{q:"Why is babbitt soft?",a:["Embeds dirt particles, protects shaft on contact","Easier to make","Cheaper","Required"],c:0,e:"Soft babbitt embeds contaminants and wears instead of shaft."},
+{q:"What is babbitt temperature limit?",a:["Around 250-300°F before damage","500°F","100°F","No limit"],c:0,e:"Babbitt softens and fails at elevated temperatures."},
+{q:"What is a tilting pad bearing?",a:["Pads pivot to adjust to load changes","Fixed pads","Rolling elements","Magnetic"],c:0,e:"Pivoting pads self-adjust for optimal oil film."},
+{q:"How many pads typical in tilting pad bearing?",a:["4-5 pads","1 pad","2 pads","10 pads"],c:0,e:"Typically 4-5 pads around circumference."},
+{q:"What is advantage of tilting pad?",a:["Prevents oil whirl instability","Cheaper","Simpler","Lighter"],c:0,e:"Tilting pads break up oil wedge preventing whirl."},
+{q:"What is thrust bearing type common in turbines?",a:["Self-equalizing tilting pad","Ball bearing","Tapered roller","Plain flat"],c:0,e:"Tilting pad thrust with equalizing linkage distributes load."},
+{q:"What is bearing crush?",a:["Interference fit of bearing in housing","Bearing failure","Clearance","Wear pattern"],c:0,e:"Slight interference ensures good heat transfer to housing."},
+{q:"How is bearing clearance measured?",a:["Plastigage, lead wire, or direct measurement","Visual estimate","Cannot measure","By weight"],c:0,e:"Several methods verify proper clearance exists."},
+{q:"What happens with too little clearance?",a:["Overheating, potential bearing wipe","Better operation","More stable","No effect"],c:0,e:"Insufficient clearance restricts oil flow, causes heating."},
+{q:"What happens with too much clearance?",a:["Vibration, instability, reduced load capacity","Better cooling","Quieter","More efficient"],c:0,e:"Excess clearance allows shaft movement and instability."},
+{q:"What is bearing wipe?",a:["Babbitt damage from metal contact","Normal wear","Cleaning method","Lubrication"],c:0,e:"Wipe is scoring/melting of babbitt from inadequate film."},
+{q:"What causes bearing wipe?",a:["Low oil flow, overload, misalignment, contamination","Normal operation","Too much oil","Cold oil"],c:0,e:"Any condition reducing oil film can cause wipe."}
+]},
+
+tools:{name:"Tools & Equipment",icon:"🔨",qs:[
+{q:"What tool measures shaft runout?",a:["Dial indicator","Micrometer","Ruler","Scale"],c:0,e:"Dial indicator shows deviation as shaft rotates."},
+{q:"What is a micrometer used for?",a:["Precise dimensional measurement","Torque","Runout","Alignment"],c:0,e:"Micrometers measure dimensions to 0.0001 inch."},
+{q:"What tool measures bearing clearance?",a:["Plastigage or feeler gauge","Ruler","Dial indicator","Torque wrench"],c:0,e:"Plastigage crushes to show clearance; feelers measure gap."},
+{q:"What is a torque wrench used for?",a:["Apply specific tightening force to fasteners","Measure clearance","Cut bolts","Remove rust"],c:0,e:"Torque wrench ensures proper bolt tension."},
+{q:"Why is proper torque important?",a:["Ensures joint integrity without overstressing","Appearance","Speed","Not important"],c:0,e:"Under-torque allows loosening; over-torque damages threads."},
+{q:"What measures bolt stretch?",a:["Ultrasonic tester or mechanical gauge","Visual","Torque wrench alone","Micrometer"],c:0,e:"Ultrasonic measures actual elongation regardless of friction."},
+{q:"What is a hydraulic tensioner?",a:["Stretches bolt hydraulically for precise tension","Torque wrench","Jack","Pump"],c:0,e:"Hydraulic tensioners stretch bolts to exact load."},
+{q:"What is advantage of hydraulic tensioning?",a:["Eliminates friction variables in torquing","Faster","Cheaper","Simpler"],c:0,e:"Direct stretch measurement independent of thread friction."},
+{q:"What is a dial indicator travel?",a:["Total measuring range","Speed","Accuracy","Size"],c:0,e:"Travel is total range - typically 0.25 to 1 inch."},
+{q:"What is indicator resolution?",a:["Smallest increment displayed","Maximum range","Size","Weight"],c:0,e:"Resolution typically 0.001 or 0.0001 inch."},
+{q:"What is a laser alignment tool for?",a:["Precision shaft alignment","Cutting","Welding","Measuring temperature"],c:0,e:"Laser systems measure angular and offset misalignment."},
+{q:"What is advantage of laser vs dial alignment?",a:["Faster setup, digital readout, calculations","Cheaper","More accurate always","Simpler"],c:0,e:"Laser speeds alignment with automatic calculations."},
+{q:"What is a borescope?",a:["Visual inspection tool for internal areas","Measuring tool","Cutting tool","Alignment tool"],c:0,e:"Borescope allows seeing inside without disassembly."},
+{q:"What is a lifting beam?",a:["Spreads load for safe heavy lifts","Cutting torch","Alignment tool","Measuring device"],c:0,e:"Lifting beam distributes load across multiple points."},
+{q:"Why use proper rigging?",a:["Prevent damage to equipment and injury","Appearance","Speed","Not important"],c:0,e:"Improper rigging can drop loads or damage components."}
+]},
+
+rotor:{name:"Rotor Procedures",icon:"🔄",qs:[
+{q:"What is first step before rotor removal?",a:["Complete LOTO and verify zero energy","Remove bolts","Lift rotor","Open casing"],c:0,e:"Safety first - isolate all energy sources."},
+{q:"What must be done to casing before rotor removal?",a:["Remove upper half casing","Nothing","Heat casing","Pressurize"],c:0,e:"Upper casing must be removed to access rotor."},
+{q:"How is upper casing removed?",a:["Unbolt horizontal joint, lift with crane","Slide off","Roll off","Unbolt and flip"],c:0,e:"Horizontal joint bolts removed, then crane lifts upper half."},
+{q:"What should be inspected on horizontal joint?",a:["Joint faces for damage, erosion, flatness","Color only","Nothing","Weight"],c:0,e:"Joint faces must seal properly - check for defects."},
+{q:"Why mark witness marks before disassembly?",a:["Ensure correct reassembly orientation","Decoration","Not needed","Count parts"],c:0,e:"Witness marks show original positions for proper reassembly."},
+{q:"What supports rotor during removal?",a:["Crane with lifting beam at balance points","Floor jacks","By hand","Forklift"],c:0,e:"Proper lift points prevent rotor damage and bending."},
+{q:"Where are rotor lift points located?",a:["At designated lifting grooves or journals","Anywhere","Blade tips","Couplings only"],c:0,e:"Specific lift points designed for rotor weight distribution."},
+{q:"What protects journals during rotor work?",a:["Journal protectors or soft wrapping","Nothing","Paint","Grease only"],c:0,e:"Journals are precision surfaces - must protect from damage."},
+{q:"Why must rotor be kept level during lift?",a:["Prevent bending stress on rotor","Appearance","Easier","Required"],c:0,e:"Uneven lifting can bend rotor causing permanent bow."},
+{q:"What is rotor laydown area?",a:["Prepared supports for storing rotor horizontally","Any flat spot","Vertical storage","Hanging"],c:0,e:"V-blocks or cradles support rotor at journals."},
+{q:"How often should stored rotor be turned?",a:["Periodically to prevent sag - daily or more","Never","Once a month","Only before install"],c:0,e:"Turning prevents gravity sag in long rotors."},
+{q:"What is checked on rotor before reinstall?",a:["Runout, journal condition, blade inspection","Weight only","Color","Nothing"],c:0,e:"Verify rotor condition is acceptable before installing."},
+{q:"What is acceptable rotor runout?",a:["2-4 mils TIR depending on location","Any amount","Zero","100 mils"],c:0,e:"Runout limits vary by manufacturer and location on rotor."},
+{q:"How is rotor lowered into casing?",a:["Slowly and level using crane, guide into bearings","Drop it","Roll in","Slide in"],c:0,e:"Careful controlled lowering prevents damage."},
+{q:"What is checked as rotor is lowered?",a:["Clearance to seals and diaphragms","Nothing","Speed","Temperature"],c:0,e:"Verify no interference as rotor enters casing."},
+{q:"What is blue check on rotor install?",a:["Verify bearing contact pattern","Color inspection","Paint job","Cleaning"],c:0,e:"Prussian blue shows bearing-to-journal contact pattern."},
+{q:"What percent contact required on blue check?",a:["80% or more evenly distributed","10%","50%","100% exactly"],c:0,e:"Need uniform contact over most of bearing surface."},
+{q:"What if blue check shows poor contact?",a:["Scrape or replace bearing","Ignore it","Add oil","Run anyway"],c:0,e:"Poor contact causes hot spots - must correct."},
+{q:"What is checked after rotor installed?",a:["Axial position, float, clearances","Nothing","Color","Weight"],c:0,e:"Verify proper rotor position and clearances."},
+{q:"What is rotor float check?",a:["Push rotor to each axial limit, verify travel","Flotation test","Balance check","Speed test"],c:0,e:"Float check confirms proper thrust clearance exists."},
+{q:"What is typical thrust float?",a:["10-20 mils total axial movement","Zero","100 mils","1 inch"],c:0,e:"Some axial movement allowed between thrust faces."}
+]},
+
+coupling:{name:"Coupling Procedures",icon:"🔗",qs:[
+{q:"What is function of turbine coupling?",a:["Connect rotor shafts, transmit torque","Seal steam","Support rotor","Cool shaft"],c:0,e:"Coupling transmits rotation from turbine to generator."},
+{q:"What type coupling used on large turbines?",a:["Rigid flanged coupling","Flexible rubber","Chain","Belt"],c:0,e:"Rigid couplings with fitted bolts are standard."},
+{q:"What are coupling fitted bolts?",a:["Interference fit bolts for zero backlash","Loose bolts","Standard bolts","Self-tapping"],c:0,e:"Fitted bolts have tight hole fit eliminating play."},
+{q:"How are fitted bolts installed?",a:["Cooled or holes heated for interference fit","Hammered in","Threaded in","Welded"],c:0,e:"Temperature differential allows insertion, then locks."},
+{q:"What is coupling bolt stretch?",a:["Elongation from proper tensioning","Damage","Looseness","Normal"],c:0,e:"Bolts stretch slightly when properly tensioned."},
+{q:"How is coupling bolt tension verified?",a:["Ultrasonic measurement or hydraulic tensioner","Visual only","Finger tight","Cannot verify"],c:0,e:"Must verify actual bolt stretch/load, not just torque."},
+{q:"What is coupling alignment?",a:["Making shaft centerlines collinear","Tightening bolts","Balancing","Cleaning"],c:0,e:"Shafts must be aligned to prevent vibration and wear."},
+{q:"What are two types of misalignment?",a:["Angular and offset (parallel)","Hot and cold","Fast and slow","Vertical and diagonal"],c:0,e:"Angular = angle between shafts; Offset = parallel displacement."},
+{q:"What tool measures coupling alignment?",a:["Dial indicators or laser alignment system","Ruler","Visual","Level only"],c:0,e:"Precision measurement required for proper alignment."},
+{q:"What is reverse dial indicator method?",a:["Two indicators 180° apart measuring both hubs","Single indicator","Visual check","Laser only"],c:0,e:"Reverse dial gives angular and offset from two readings."},
+{q:"What is coupling alignment tolerance?",a:["Typically 1-2 mils","Any alignment OK","Zero tolerance","1 inch"],c:0,e:"Tight tolerances prevent vibration and coupling wear."},
+{q:"What is thermal growth compensation?",a:["Preset cold alignment to account for hot running position","Not needed","Random offset","Guesswork"],c:0,e:"Cold alignment offset so hot alignment is correct."},
+{q:"Why does thermal growth matter?",a:["Machines grow differently when hot","It doesn't matter","Shrinkage only","Speed change"],c:0,e:"Different temps cause different growth - must compensate."},
+{q:"What is coupling runout?",a:["Deviation from true rotation measured at coupling face","Balance","Alignment","Clearance"],c:0,e:"Runout shows if coupling face is perpendicular to shaft."},
+{q:"What causes coupling problems?",a:["Misalignment, loose bolts, damage","Nothing","Normal operation","Speed"],c:0,e:"Misalignment is most common coupling issue."},
+{q:"What indicates coupling distress?",a:["2X vibration, heat, coupling wear","1X only","No indication","Noise only"],c:0,e:"2X vibration classic sign of misalignment at coupling."},
+{q:"When is coupling alignment checked?",a:["After any work affecting alignment, periodically","Never","Once only","Only if vibration"],c:0,e:"Check after bearing work, casing work, or foundation changes."},
+{q:"What is soft foot effect on alignment?",a:["Uneven support distorts casing affecting alignment","Improves alignment","No effect","Only cosmetic"],c:0,e:"Must correct soft foot before aligning - causes errors."},
+{q:"How is soft foot detected?",a:["Loosen each foot, measure movement","Visual only","Cannot detect","Vibration"],c:0,e:"Loosening one foot at a time reveals which moves."},
+{q:"What is coupling guard?",a:["Safety cover preventing contact with rotating coupling","Alignment tool","Seal","Support"],c:0,e:"Guard protects personnel from spinning coupling."}
+]}
+};
+// STUDY GUIDE
+const STUDY={
+fundamentals:`<h3>Steam Turbine Fundamentals</h3>
+<h4>Energy Conversion</h4>
+<p>Steam turbines convert thermal energy to rotational mechanical energy. As steam expands, pressure decreases while velocity increases, transferring energy to rotating blades.</p>
+<div class="info"><p><strong>Key:</strong> Nuclear uses saturated steam ~545-560°F vs fossil ~1000°F superheated.</p></div>
+<h4>Arrangements</h4>
+<p>Large nuclear: tandem-compound double-flow. One HP + 2-3 LP turbines on single shaft.</p>
+<h4>Why Half Speed (1800 RPM)?</h4>
+<p>Lower temps = more volume = longer blades needed. Half speed keeps tip speeds within stress limits.</p>
+<h4>Key Parameters</h4>
+<table><tr><th>Parameter</th><th>Typical Value</th></tr>
+<tr><td>HP Inlet Temp</td><td>545-560°F</td></tr>
+<tr><td>HP Inlet Pressure</td><td>800-1000 psig</td></tr>
+<tr><td>LP Exhaust</td><td>1-3 in Hg abs</td></tr>
+<tr><td>Speed (60 Hz)</td><td>1800 RPM</td></tr></table>`,
+
+ge:`<h3>GE Turbine Systems</h3>
+<h4>Casing</h4>
+<p>Double-shell HP with horizontal split. Inner casing expands independently.</p>
+<h4>Bearings</h4>
+<p>Tilting pad journal and thrust bearings. Lube: 15-25 psig. Control: 100-150 psig.</p>
+<h4>Protection</h4>
+<p>Mechanical bolts at 110-111% + electronic trips. Mark VIe with TMR logic.</p>
+<h4>Limits</h4>
+<table><tr><th>Parameter</th><th>Value</th></tr>
+<tr><td>HP Tip Clearance</td><td>15-25 mils</td></tr>
+<tr><td>Vibration Alert</td><td>5-6 mils pk-pk</td></tr>
+<tr><td>Vibration Trip</td><td>8-10 mils pk-pk</td></tr>
+<tr><td>Bearing Temp Alarm</td><td>200-220°F</td></tr></table>`,
+
+westinghouse:`<h3>Westinghouse Systems</h3>
+<h4>LP Rotor</h4>
+<p>Shrunk-on discs (0.5-1.5 mils/inch interference) on central shaft.</p>
+<h4>Valves</h4>
+<p>Combined stop/control with bar-lift. Control opens first, then stop valve.</p>
+<h4>Blading</h4>
+<p>50% reaction at midspan. Fir-tree roots with 3-5 serrations.</p>
+<h4>Alignment</h4>
+<p>Piano wire centerline with optical equipment. 0.5-1.0 mil accuracy.</p>`,
+
+siemens:`<h3>Siemens Turbines</h3>
+<h4>Barrel Casing</h4>
+<p>Non-split cylinder. No joint leakage, uniform thermal expansion.</p>
+<h4>Blading</h4>
+<p>3D-optimized profiles. Longest last-stage blades in industry (1.5+ m).</p>
+<h4>Startup</h4>
+<p>Warming rate: 100-150°F/hr max. Labyrinth seals with 10-30 teeth.</p>
+<h4>Maintenance</h4>
+<p>Condition-based using continuous monitoring.</p>`,
+
+lube:`<h3>Lube Oil Systems</h3>
+<h4>Pumps</h4>
+<table><tr><th>Pump</th><th>Drive</th><th>Function</th></tr>
+<tr><td>MOP</td><td>Shaft</td><td>Normal operation</td></tr>
+<tr><td>AOP</td><td>AC Motor</td><td>Startup/shutdown</td></tr>
+<tr><td>EOP</td><td>DC Motor</td><td>Emergency backup</td></tr></table>
+<h4>Temperatures</h4>
+<p>Supply: 100-120°F. Drain: 130-160°F. Cooler outlet: 100-110°F.</p>
+<h4>Oil Analysis</h4>
+<table><tr><th>Parameter</th><th>Limit</th></tr>
+<tr><td>Water</td><td>&lt;500 ppm</td></tr>
+<tr><td>TAN</td><td>&lt;0.3-0.5</td></tr></table>`,
+
+valves:`<h3>Steam Valve Systems</h3>
+<h4>Types</h4>
+<table><tr><th>Valve</th><th>Function</th><th>Close Time</th></tr>
+<tr><td>MSV</td><td>Emergency isolation</td><td>&lt;0.3 sec</td></tr>
+<tr><td>Control</td><td>Load/speed control</td><td>Modulating</td></tr>
+<tr><td>Intercept</td><td>LP protection</td><td>&lt;0.3 sec</td></tr></table>
+<h4>Testing</h4>
+<p>Weekly/monthly stroking: 10-20% closure to verify freedom.</p>`,
+
+generator:`<h3>Generator & H2 Cooling</h3>
+<h4>Why Hydrogen?</h4>
+<p>7x thermal conductivity, 1/14 density of air. Up to 90% windage reduction.</p>
+<h4>Safety</h4>
+<div class="info danger"><p>Explosive range: 4-75% H2 in air. Maintain >95% purity.</p></div>
+<h4>Purge Sequences</h4>
+<p>Filling: Air → CO2 → H2<br>Removing: H2 → CO2 → Air</p>
+<p><strong>Never mix H2 and air directly!</strong></p>`,
+
+maintenance:`<h3>Maintenance Procedures</h3>
+<h4>LOTO First!</h4>
+<div class="info danger"><p>Lock out ALL energy: electrical, steam, hydraulic, stored mechanical.</p></div>
+<h4>Measurements</h4>
+<table><tr><th>Item</th><th>Method</th><th>Limit</th></tr>
+<tr><td>Runout</td><td>Dial indicator</td><td>2-4 mils TIR</td></tr>
+<tr><td>Bearing clearance</td><td>Plastigage/lead</td><td>1.5-2.5 mils/in</td></tr>
+<tr><td>Alignment</td><td>Laser/dial</td><td>1-2 mils</td></tr></table>`,
+
+troubleshoot:`<h3>Troubleshooting</h3>
+<h4>Vibration</h4>
+<table><tr><th>Frequency</th><th>Cause</th></tr>
+<tr><td>1X</td><td>Unbalance, bow</td></tr>
+<tr><td>2X</td><td>Misalignment, crack</td></tr>
+<tr><td>~0.4X</td><td>Oil whirl</td></tr></table>
+<h4>Temperature</h4>
+<table><tr><th>Symptom</th><th>Cause</th></tr>
+<tr><td>Rising bearing temp</td><td>Low oil, high load</td></tr>
+<tr><td>Rising LP exhaust</td><td>Poor vacuum</td></tr></table>`,
+
+safety:`<h3>Safety Systems</h3>
+<h4>Overspeed</h4>
+<p>Trip: 110-111% rated speed. Redundant mechanical + electronic.</p>
+<h4>Trip Parameters</h4>
+<table><tr><th>Parameter</th><th>Trip</th></tr>
+<tr><td>Overspeed</td><td>110-111%</td></tr>
+<tr><td>Low oil pressure</td><td>~8 psig</td></tr>
+<tr><td>High vibration</td><td>8-10 mils</td></tr></table>
+<div class="info danger"><p><strong>Water Induction:</strong> Causes thermal shock - can crack rotors!</p></div>`,
+
+condenser:`<h3>Condenser Systems</h3>
+<h4>Function</h4>
+<p>Converts LP exhaust steam to water, maintains vacuum for maximum energy extraction.</p>
+<h4>Key Parameters</h4>
+<table><tr><th>Parameter</th><th>Value</th></tr>
+<tr><td>Vacuum</td><td>1-3 in Hg absolute</td></tr>
+<tr><td>Tube Material</td><td>Titanium, SS, Cu-Ni</td></tr>
+<tr><td>Cooling Water Velocity</td><td>6-8 fps</td></tr></table>
+<h4>Vacuum Loss Causes</h4>
+<p>Air in-leakage, tube fouling, low cooling water flow, high inlet water temp.</p>
+<h4>Air Removal</h4>
+<p>Steam jet air ejectors or vacuum pumps continuously remove air.</p>`,
+
+feedwater:`<h3>Feedwater Systems</h3>
+<h4>Regenerative Heating</h4>
+<p>5-7 stages of feedwater heating using extraction steam improves efficiency 5-10%.</p>
+<h4>Heater Types</h4>
+<table><tr><th>Type</th><th>Description</th></tr>
+<tr><td>Open (Deaerator)</td><td>Direct contact, removes O2/CO2</td></tr>
+<tr><td>Closed</td><td>Shell-and-tube, no mixing</td></tr></table>
+<h4>Key Parameters</h4>
+<table><tr><th>Parameter</th><th>Value</th></tr>
+<tr><td>Final FW Temp</td><td>425-450°F</td></tr>
+<tr><td>FW Pump Discharge</td><td>1200-1500 psig</td></tr></table>
+<h4>RFPT</h4>
+<p>Steam turbine driven feed pumps allow variable speed control for flow matching.</p>`,
+
+exciter:`<h3>Exciter Systems</h3>
+<h4>Function</h4>
+<p>Provides DC current to generator rotor field to create magnetic field for power generation.</p>
+<h4>Types</h4>
+<table><tr><th>Type</th><th>Description</th></tr>
+<tr><td>Static</td><td>Thyristor converts AC to DC</td></tr>
+<tr><td>Brushless</td><td>Rotating rectifiers on shaft</td></tr></table>
+<h4>AVR</h4>
+<p>Automatic Voltage Regulator adjusts field current to maintain terminal voltage.</p>
+<h4>Protection</h4>
+<p>Field ground detection, loss of field (LOF) relay protect against failures.</p>`,
+
+glandseals:`<h3>Gland Seal System</h3>
+<h4>Purpose</h4>
+<p>Seals shaft penetrations using low-pressure steam to prevent air in-leakage and steam escape.</p>
+<h4>Operating Pressure</h4>
+<p>Gland seal steam: 2-5 psig above atmospheric. Slight vacuum at outer packing.</p>
+<h4>Components</h4>
+<p>Labyrinth seals (10-20 mils clearance), gland steam condenser, exhaust fan.</p>
+<div class="info warn"><p><strong>Key:</strong> Low pressure = air leaks in. High pressure = steam escapes out.</p></div>`,
+
+drains:`<h3>Drain Systems</h3>
+<h4>Purpose</h4>
+<p>Remove condensate to prevent water induction - thermal shock and blade damage.</p>
+<h4>Types</h4>
+<table><tr><th>Drain</th><th>Purpose</th></tr>
+<tr><td>Startup</td><td>Remove warmup condensate</td></tr>
+<tr><td>Extraction</td><td>Drain extraction lines</td></tr>
+<tr><td>Crossover</td><td>HP to LP piping</td></tr></table>
+<div class="info danger"><p><strong>Water Induction:</strong> Most dangerous - causes thermal shock cracking!</p></div>`,
+
+vibration:`<h3>Vibration Analysis</h3>
+<h4>Frequency Signatures</h4>
+<table><tr><th>Frequency</th><th>Likely Cause</th></tr>
+<tr><td>1X (synchronous)</td><td>Unbalance, bow, eccentricity</td></tr>
+<tr><td>2X</td><td>Misalignment, cracked shaft</td></tr>
+<tr><td>0.4-0.48X</td><td>Oil whirl</td></tr></table>
+<h4>Measurement Types</h4>
+<p>Proximity probes (shaft displacement), accelerometers (casing), velocity pickups.</p>
+<h4>Diagnostic Plots</h4>
+<p>Bode (amplitude/phase vs speed), Polar (vector), Orbit (shaft path from X-Y probes).</p>
+<h4>Critical Speeds</h4>
+<p>Where natural frequency = running speed. Accelerate through quickly - don't dwell.</p>`,
+
+controls:`<h3>Control Systems</h3>
+<h4>Overview</h4>
+<p>EHC (Electro-Hydraulic Control) uses electronic signals to control hydraulic valve actuators. Digital systems (DEH, Mark VIe) replaced mechanical governors.</p>
+<h4>Control Loops</h4>
+<table><tr><th>Loop</th><th>Function</th></tr>
+<tr><td>Speed Control</td><td>Maintains turbine RPM at setpoint</td></tr>
+<tr><td>Load Control</td><td>Maintains MW output at setpoint</td></tr></table>
+<h4>Speed Droop</h4>
+<p>4-5% typical - speed decreases as load increases. Allows stable load sharing between parallel units.</p>
+<div class="info"><p><strong>Isochronous:</strong> Zero droop, constant speed. Only for isolated operation.</p></div>`,
+
+startup:`<h3>Startup/Shutdown</h3>
+<h4>Startup Prerequisites</h4>
+<p>Oil system running, vacuum established (25+ in Hg), drains open, turning gear operated.</p>
+<h4>Roll and Soak</h4>
+<p>Gradual roll with hold points at critical speeds for thermal equalization. Check vibration, expansion, eccentricity at each hold.</p>
+<h4>Loading</h4>
+<p>Typical rate: 1-5% per minute. Limited by thermal stress in rotor and casing.</p>
+<h4>Shutdown</h4>
+<p>Reduce load gradually, trip, engage turning gear when speed drops. Continue turning 24-48 hours until cool.</p>
+<div class="info danger"><p><strong>Key:</strong> Turning gear prevents rotor bow from uneven cooling!</p></div>`,
+
+bearings:`<h3>Bearing Systems</h3>
+<h4>Journal Bearings</h4>
+<p>Support rotor weight via hydrodynamic oil wedge. Tilting pad design prevents oil whirl.</p>
+<h4>Thrust Bearings</h4>
+<p>Control axial position. Self-equalizing tilting pad distributes load evenly.</p>
+<h4>Clearances</h4>
+<table><tr><th>Type</th><th>Typical</th></tr>
+<tr><td>Journal radial</td><td>1.5-2.5 mils/inch diameter</td></tr>
+<tr><td>Thrust axial</td><td>10-20 mils total</td></tr></table>
+<h4>Babbitt</h4>
+<p>Soft metal lining (tin/lead alloy). Protects shaft, embeds dirt. Limit ~250-300°F.</p>
+<div class="info warn"><p><strong>Bearing Wipe:</strong> Metal contact damage from low oil, overload, or misalignment.</p></div>`,
+
+tools:`<h3>Tools & Equipment</h3>
+<h4>Measurement Tools</h4>
+<table><tr><th>Tool</th><th>Use</th></tr>
+<tr><td>Dial Indicator</td><td>Runout, alignment</td></tr>
+<tr><td>Micrometer</td><td>Precise dimensions</td></tr>
+<tr><td>Plastigage</td><td>Bearing clearance</td></tr>
+<tr><td>Torque Wrench</td><td>Fastener tension</td></tr></table>
+<h4>Alignment</h4>
+<p>Laser alignment systems or dial indicator reverse method. Target: 1-2 mils.</p>
+<h4>Tensioning</h4>
+<p>Hydraulic tensioners stretch bolts directly, eliminating friction variables. Ultrasonic measures actual stretch.</p>`,
+
+rotor:`<h3>Rotor Procedures</h3>
+<h4>Removal Sequence</h4>
+<p>1. LOTO and verify zero energy<br>2. Remove upper casing<br>3. Mark witness marks<br>4. Install journal protectors<br>5. Attach lifting beam at proper points<br>6. Lift level and slow</p>
+<h4>Critical Points</h4>
+<table><tr><th>Check</th><th>Requirement</th></tr>
+<tr><td>Runout</td><td>2-4 mils TIR</td></tr>
+<tr><td>Blue check</td><td>80%+ uniform contact</td></tr>
+<tr><td>Thrust float</td><td>10-20 mils total</td></tr></table>
+<h4>Storage</h4>
+<p>Support at journals on V-blocks. Turn periodically (daily) to prevent gravity sag.</p>
+<div class="info warn"><p><strong>Key:</strong> Keep rotor LEVEL during lift to prevent bending!</p></div>`,
+
+coupling:`<h3>Coupling Procedures</h3>
+<h4>Coupling Types</h4>
+<p>Large turbines use rigid flanged couplings with fitted (interference fit) bolts for zero backlash.</p>
+<h4>Alignment</h4>
+<table><tr><th>Type</th><th>Description</th></tr>
+<tr><td>Angular</td><td>Angle between shaft centerlines</td></tr>
+<tr><td>Offset</td><td>Parallel displacement of centerlines</td></tr></table>
+<p>Tolerance: 1-2 mils. Use reverse dial indicator or laser systems.</p>
+<h4>Thermal Growth</h4>
+<p>Cold alignment offset to achieve correct hot running alignment. Different components grow at different rates.</p>
+<div class="info"><p><strong>2X Vibration:</strong> Classic sign of coupling misalignment!</p></div>`
+};
+
+// GAME LOGIC
+let quiz={mode:'',cat:'',qs:[],idx:0,correct:0,wrong:0,streak:0,bestStreak:0,lives:3,timer:null,wrongQs:[],combo:1,comboTime:0,answerStart:0};
+
+// SETTINGS
+var settings={sound:true,vibrate:true,anim:true,fontSize:'m'};
+try{var savedSettings=localStorage.getItem('turbineSettings');if(savedSettings)settings=JSON.parse(savedSettings);}catch(e){}
+
+function saveSettings(){try{localStorage.setItem('turbineSettings',JSON.stringify(settings));}catch(e){}}
+
+// SOUND EFFECTS (Web Audio API)
+var audioCtx=null;
+function initAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();}
+function playSound(type){
+  if(!settings.sound)return;
+  initAudio();
+  var osc=audioCtx.createOscillator();
+  var gain=audioCtx.createGain();
+  osc.connect(gain);gain.connect(audioCtx.destination);
+  if(type==='correct'){osc.frequency.setValueAtTime(523,audioCtx.currentTime);osc.frequency.setValueAtTime(659,audioCtx.currentTime+0.1);gain.gain.setValueAtTime(0.3,audioCtx.currentTime);gain.gain.exponentialDecayTo&&gain.gain.exponentialDecayTo(0.01,audioCtx.currentTime+0.3);osc.start();osc.stop(audioCtx.currentTime+0.3);}
+  else if(type==='wrong'){osc.frequency.setValueAtTime(200,audioCtx.currentTime);osc.frequency.setValueAtTime(150,audioCtx.currentTime+0.15);gain.gain.setValueAtTime(0.3,audioCtx.currentTime);osc.start();osc.stop(audioCtx.currentTime+0.3);}
+  else if(type==='levelup'){osc.frequency.setValueAtTime(523,audioCtx.currentTime);osc.frequency.setValueAtTime(659,audioCtx.currentTime+0.1);osc.frequency.setValueAtTime(784,audioCtx.currentTime+0.2);osc.frequency.setValueAtTime(1047,audioCtx.currentTime+0.3);gain.gain.setValueAtTime(0.3,audioCtx.currentTime);osc.start();osc.stop(audioCtx.currentTime+0.5);}
+  else if(type==='combo'){osc.frequency.setValueAtTime(880,audioCtx.currentTime);gain.gain.setValueAtTime(0.2,audioCtx.currentTime);osc.start();osc.stop(audioCtx.currentTime+0.1);}
+  else if(type==='achieve'){osc.type='triangle';osc.frequency.setValueAtTime(440,audioCtx.currentTime);osc.frequency.setValueAtTime(554,audioCtx.currentTime+0.1);osc.frequency.setValueAtTime(659,audioCtx.currentTime+0.2);osc.frequency.setValueAtTime(880,audioCtx.currentTime+0.3);gain.gain.setValueAtTime(0.25,audioCtx.currentTime);osc.start();osc.stop(audioCtx.currentTime+0.5);}
+}
+
+function vibrate(ms){if(settings.vibrate&&navigator.vibrate)navigator.vibrate(ms);}
+
+// VISUAL EFFECTS
+function screenFlash(type){
+  if(!settings.anim)return;
+  var el=document.getElementById('screenFlash');
+  el.className='screen-flash '+type;
+  setTimeout(function(){el.className='screen-flash';},150);
+}
+
+function showXPFloat(amount,x,y){
+  if(!settings.anim)return;
+  var el=document.createElement('div');
+  el.className='xp-float';
+  el.textContent='+'+amount+' XP';
+  el.style.left=x+'px';
+  el.style.top=y+'px';
+  document.body.appendChild(el);
+  setTimeout(function(){el.remove();},1500);
+}
+
+function spawnConfetti(){
+  if(!settings.anim)return;
+  var colors=['#f4d03f','#27ae60','#00fff7','#e74c3c','#9b59b6'];
+  for(var i=0;i<30;i++){
+    var el=document.createElement('div');
+    el.className='confetti';
+    el.style.left=Math.random()*100+'%';
+    el.style.top='-10px';
+    el.style.background=colors[Math.floor(Math.random()*colors.length)];
+    el.style.animationDelay=Math.random()*0.5+'s';
+    document.body.appendChild(el);
+    setTimeout(function(e){e.remove();}.bind(null,el),3500);
+  }
+}
+
+function showLevelUp(lvl){
+  if(!settings.anim)return;
+  playSound('levelup');
+  spawnConfetti();
+  document.getElementById('newLvl').textContent=lvl;
+  document.getElementById('lvlUpModal').classList.add('show');
+  setTimeout(function(){document.getElementById('lvlUpModal').classList.remove('show');},2000);
+}
+
+// COMBO SYSTEM
+function updateCombo(correct,fast){
+  if(correct){
+    var speedBonus=fast?0.5:0;
+    quiz.combo=Math.min(quiz.combo+0.5+speedBonus,5);
+    if(quiz.combo>=2){
+      playSound('combo');
+      var comboEl=document.getElementById('comboDisp');
+      comboEl.textContent='🔥 '+quiz.combo.toFixed(1)+'x COMBO';
+      comboEl.classList.add('show');
+      if(quiz.combo>=4)comboEl.classList.add('mega');else comboEl.classList.remove('mega');
+    }
+  }else{
+    quiz.combo=1;
+    document.getElementById('comboDisp').classList.remove('show','mega');
+  }
+  document.getElementById('comboMult').textContent='x'+quiz.combo.toFixed(1);
+  document.getElementById('comboMult').style.display=quiz.combo>1?'inline':'none';
+}
+
+// SETTINGS UI
+function toggleSettings(){document.getElementById('settingsModal').classList.toggle('show');}
+function toggleSetting(which){
+  settings[which]=!settings[which];
+  var el=document.getElementById(which==='sound'?'sndToggle':which==='vibrate'?'vibToggle':'animToggle');
+  el.classList.toggle('on',settings[which]);
+  saveSettings();
+}
+function setFont(size){
+  settings.fontSize=size;
+  document.querySelectorAll('.font-btns button').forEach(function(b){b.classList.remove('active');});
+  event.target.classList.add('active');
+  var fs=size==='s'?'14px':size==='l'?'18px':'16px';
+  document.body.style.fontSize=fs;
+  saveSettings();
+}
+function resetProgress(){
+  if(confirm('Reset ALL progress? This cannot be undone!')){
+    localStorage.removeItem('turbinePro');
+    location.reload();
+  }
+}
+
+// Apply saved settings on load
+function applySettings(){
+  document.getElementById('sndToggle').classList.toggle('on',settings.sound);
+  document.getElementById('vibToggle').classList.toggle('on',settings.vibrate);
+  document.getElementById('animToggle').classList.toggle('on',settings.anim);
+  var fs=settings.fontSize==='s'?'14px':settings.fontSize==='l'?'18px':'16px';
+  document.body.style.fontSize=fs;
+}
+
+function save(){try{localStorage.setItem('turbinePro',JSON.stringify(G));}catch(e){}}
+
+function updateUI(){
+  document.getElementById('totXP').textContent=G.xp;
+  document.getElementById('totC').textContent=G.correct;
+  document.getElementById('bestS').textContent=G.bestStreak;
+  document.getElementById('totQ').textContent=G.totalAnswered;
+  const pct=(G.xp%G.xpNext)/G.xpNext*100;
+  document.getElementById('xpBar').style.width=pct+'%';
+  document.getElementById('xpTxt').textContent=(G.xp%G.xpNext)+'/'+G.xpNext;
+  document.getElementById('lvlB').textContent='LV '+G.lvl;
+}
+
+function showScreen(id){
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showMenu(){showScreen('menuScr');}
+
+function showCats(){
+  const grid=document.getElementById('catGrid');
+  grid.innerHTML='';
+  Object.keys(Q).forEach(k=>{
+    const cat=Q[k];
+    grid.innerHTML+=`<div class="cat-btn" onclick="startQuiz('cat','${k}')"><div><h4>${cat.icon} ${cat.name}</h4><span>${cat.qs.length} questions</span></div><div style="color:var(--yl);font-weight:bold">${cat.qs.length}</div></div>`;
+  });
+  showScreen('catScr');
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function startQuiz(mode,cat){
+  quiz={mode:mode,cat:cat||'',qs:[],idx:0,correct:0,wrong:0,streak:0,bestStreak:0,lives:3,timer:null,wrongQs:[]};
+  let pool=[];
+  if(mode==='cat'&&cat){
+    pool=Q[cat].qs.map(function(q){return Object.assign({},q,{cat:cat});});
+    quiz.catName=Q[cat].name;
+  }else{
+    Object.keys(Q).forEach(function(k){
+      Q[k].qs.forEach(function(q){
+        pool.push(Object.assign({},q,{cat:k}));
+      });
+    });
+  }
+  shuffle(pool);
+  if(mode==='quick')quiz.qs=pool.slice(0,10);
+  else if(mode==='marathon')quiz.qs=pool.slice(0,50);
+  else if(mode==='challenge')quiz.qs=pool.slice(0,25);
+  else quiz.qs=pool;
+  document.getElementById('timerWrap').style.display=(mode==='challenge')?'block':'none';
+  document.getElementById('livesD').style.display=(mode==='survival')?'block':'none';
+  showScreen('quizScr');
+  showQuestion();
+}
+
+function retryQuiz(){startQuiz(quiz.mode,quiz.cat);}
+
+function showQuestion(){
+  if(quiz.idx>=quiz.qs.length||(quiz.mode==='survival'&&quiz.lives<=0)){endQuiz();return;}
+  if(quiz.mode==='blitz'&&quiz.blitzTimeLeft<=0){endQuiz();return;}
+  const q=quiz.qs[quiz.idx];
+  document.getElementById('qCat').textContent=quiz.catName||quiz.mode.toUpperCase();
+  document.getElementById('qProg').textContent=(quiz.idx+1)+'/'+(quiz.mode==='survival'||quiz.mode==='blitz'?'∞':quiz.qs.length);
+  document.getElementById('qTxt').textContent=q.q;
+  if(quiz.mode==='survival')document.getElementById('livesC').textContent='❤️'.repeat(quiz.lives);
+  if(quiz.mode==='blitz')document.getElementById('blitzCount').textContent=quiz.idx;
+  
+  // Track answer start time for combo
+  quiz.answerStart=Date.now();
+  
+  // Shuffle answers - create array with original indices
+  var answerPairs = [];
+  for(var i=0; i<q.a.length; i++){
+    answerPairs.push({text: q.a[i], origIdx: i});
+  }
+  // Shuffle the pairs
+  for(var i=answerPairs.length-1; i>0; i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var temp=answerPairs[i];
+    answerPairs[i]=answerPairs[j];
+    answerPairs[j]=temp;
+  }
+  // Store shuffled mapping for this question
+  quiz.currentAnswers = answerPairs;
+  
+  const grid=document.getElementById('ansGrid');
+  grid.innerHTML='';
+  ['A','B','C','D'].forEach(function(L,i){
+    if(answerPairs[i])grid.innerHTML+='<div class="ans" onclick="answer('+i+')"><span class="ltr">'+L+'</span>'+answerPairs[i].text+'</div>';
+  });
+  document.getElementById('expBox').classList.remove('show');
+  document.getElementById('nxtBtn').classList.remove('show');
+  updateBookmarkBtn();
+  if(quiz.mode==='challenge'){
+    quiz.timeLeft=15;
+    document.getElementById('timerFill').style.width='100%';
+    clearInterval(quiz.timer);
+    quiz.timer=setInterval(function(){
+      quiz.timeLeft-=0.1;
+      document.getElementById('timerFill').style.width=(quiz.timeLeft/15*100)+'%';
+      if(quiz.timeLeft<=0){clearInterval(quiz.timer);autoWrong();}
+    },100);
+  }
+}
+
+function autoWrong(){
+  const q=quiz.qs[quiz.idx];
+  // Find which button position has the correct answer
+  var correctBtn = -1;
+  for(var i=0; i<quiz.currentAnswers.length; i++){
+    if(quiz.currentAnswers[i].origIdx === q.c) correctBtn = i;
+  }
+  document.querySelectorAll('.ans').forEach(function(a,i){
+    a.classList.add('dis');
+    if(i===correctBtn) a.classList.add('correct');
+  });
+  quiz.wrong++;quiz.streak=0;G.totalAnswered++;
+  quiz.wrongQs.push({q:q.q,a:q.a[q.c],cat:q.cat});
+  document.getElementById('strk').classList.remove('show');
+  document.getElementById('expTxt').textContent=q.e;
+  document.getElementById('expBox').classList.add('show');
+  document.getElementById('nxtBtn').classList.add('show');
+  playSound('wrong');
+  screenFlash('wrong');
+  vibrate(100);
+  updateCombo(false);
+}
+
+function answer(i){
+  clearInterval(quiz.timer);
+  clearInterval(quiz.blitzTimer);
+  const q=quiz.qs[quiz.idx];
+  const btns=document.querySelectorAll('.ans');
+  btns.forEach(function(b){b.classList.add('dis');});
+  G.totalAnswered++;
+  
+  // Check answer speed for combo
+  var answerTime=Date.now()-quiz.answerStart;
+  var wasFast=answerTime<3000;
+  
+  // Check if clicked answer's original index matches correct answer
+  var clickedOrigIdx = quiz.currentAnswers[i].origIdx;
+  var correctBtn = -1;
+  for(var j=0; j<quiz.currentAnswers.length; j++){
+    if(quiz.currentAnswers[j].origIdx === q.c) correctBtn = j;
+  }
+  
+  if(clickedOrigIdx === q.c){
+    btns[i].classList.add('correct');
+    quiz.correct++;quiz.streak++;G.correct++;
+    if(quiz.streak>quiz.bestStreak)quiz.bestStreak=quiz.streak;
+    if(quiz.streak>G.bestStreak)G.bestStreak=quiz.streak;
+    if(quiz.streak>=3){document.getElementById('strkN').textContent=quiz.streak;document.getElementById('strk').classList.add('show');}
+    // Track category stats
+    if(q.cat){
+      if(!G.catStats)G.catStats={};
+      if(!G.catStats[q.cat])G.catStats[q.cat]={c:0,w:0};
+      G.catStats[q.cat].c++;
+    }
+    // Effects
+    playSound('correct');
+    screenFlash('correct');
+    updateCombo(true,wasFast);
+    // Spaced repetition - correct answers reduce weight
+    if(q.cat&&G.spacedRep){
+      var key=q.q.substring(0,30);
+      if(!G.spacedRep[key])G.spacedRep[key]={w:1,last:Date.now()};
+      G.spacedRep[key].w=Math.max(0.2,G.spacedRep[key].w-0.2);
+      G.spacedRep[key].last=Date.now();
+    }
+  }else{
+    btns[i].classList.add('wrong');
+    btns[correctBtn].classList.add('correct');
+    quiz.wrong++;quiz.streak=0;
+    quiz.wrongQs.push({q:q.q,a:q.a[q.c],cat:q.cat});
+    document.getElementById('strk').classList.remove('show');
+    if(quiz.mode==='survival')quiz.lives--;
+    // Track category stats
+    if(q.cat){
+      if(!G.catStats)G.catStats={};
+      if(!G.catStats[q.cat])G.catStats[q.cat]={c:0,w:0};
+      G.catStats[q.cat].w++;
+    }
+    // Effects
+    playSound('wrong');
+    screenFlash('wrong');
+    vibrate(100);
+    updateCombo(false);
+    // Spaced repetition - wrong answers increase weight
+    if(q.cat){
+      if(!G.spacedRep)G.spacedRep={};
+      var key=q.q.substring(0,30);
+      if(!G.spacedRep[key])G.spacedRep[key]={w:1,last:Date.now()};
+      G.spacedRep[key].w=Math.min(3,G.spacedRep[key].w+0.5);
+      G.spacedRep[key].last=Date.now();
+    }
+  }
+  document.getElementById('expTxt').textContent=q.e;
+  document.getElementById('expBox').classList.add('show');
+  if(quiz.mode!=='blitz')document.getElementById('nxtBtn').classList.add('show');
+  else{quiz.idx++;setTimeout(function(){if(quiz.blitzTimeLeft>0)showQuestion();else endQuiz();},800);}
+  save();
+  updateBookmarkBtn();
+}
+
+function nextQ(){quiz.idx++;showQuestion();}
+
+function quitQuiz(){
+  clearInterval(quiz.timer);
+  document.getElementById('strk').classList.remove('show');
+  showMenu();
+}
+
+function endQuiz(){
+  clearInterval(quiz.timer);
+  clearInterval(quiz.blitzTimer);
+  document.getElementById('strk').classList.remove('show');
+  document.getElementById('comboDisp').classList.remove('show','mega');
+  document.getElementById('blitzWrap').style.display='none';
+  
+  // Calculate XP with combo bonus
+  var baseXP=quiz.correct*10;
+  var streakBonus=quiz.bestStreak*5;
+  var comboBonus=Math.round((quiz.combo-1)*20);
+  var modeBonus=0;
+  
+  // Mode-specific bonuses
+  if(quiz.mode==='blitz'){
+    modeBonus=quiz.correct*5; // Extra for speed
+    if(quiz.correct>G.blitzBest){G.blitzBest=quiz.correct;}
+  }
+  if(quiz.mode==='boss'){
+    modeBonus=50; // Boss attempt bonus
+  }
+  
+  var total=baseXP+streakBonus+comboBonus+modeBonus;
+  var oldLvl=G.lvl;
+  G.xp+=total;
+  while(G.xp>=G.xpNext*G.lvl){G.lvl++;G.xpNext=Math.round(G.xpNext*1.15);}
+  
+  // Level up effect
+  if(G.lvl>oldLvl){
+    setTimeout(function(){showLevelUp(G.lvl);},500);
+  }
+  
+  var acc=quiz.correct+quiz.wrong>0?Math.round(quiz.correct/(quiz.correct+quiz.wrong)*100):0;
+  var icon='🏆',title='Great Work!',sub='Becoming a turbine expert!';
+  
+  // Boss battle results
+  if(quiz.mode==='boss'){
+    if(acc>=80){
+      icon='⚔️';title='BOSS DEFEATED!';sub=quiz.bossName+' vanquished!';
+      if(G.bossDefeated.indexOf(quiz.bossId)===-1){
+        G.bossDefeated.push(quiz.bossId);
+        total+=100; // Boss defeat bonus
+        G.xp+=100;
+      }
+      spawnConfetti();
+    }else{
+      icon='💀';title='DEFEATED';sub=quiz.bossName+' wins! Need 80%+';
+    }
+  }
+  // Blitz results
+  else if(quiz.mode==='blitz'){
+    icon='⏱️';title=quiz.correct+' in 60s!';
+    sub=quiz.correct>=15?'Speed demon!':quiz.correct>=10?'Quick thinking!':'Keep practicing!';
+    if(quiz.correct>=15)spawnConfetti();
+  }
+  // Standard results
+  else{
+    if(acc>=90){icon='🌟';title='Outstanding!';sub='Nuclear-grade performance!';spawnConfetti();}
+    else if(acc>=70){icon='👍';title='Good Job!';sub='Keep studying!';}
+    else if(acc<50){icon='📚';title='Keep Learning!';sub='Review the study guide.';}
+  }
+  
+  // Track special achievements
+  if(acc===100&&quiz.qs.length>=10)G.perfectQuiz=true;
+  if(quiz.mode==='marathon'&&quiz.idx>=50)G.marathonDone=true;
+  if(quiz.mode==='survival'){
+    if(!G.survivalBest)G.survivalBest=0;
+    if(quiz.idx>G.survivalBest)G.survivalBest=quiz.idx;
+  }
+  
+  document.getElementById('resIco').textContent=icon;
+  document.getElementById('resTitle').textContent=title;
+  document.getElementById('resSub').textContent=sub;
+  document.getElementById('xpGained').textContent=total;
+  
+  var breakText='Base: '+baseXP;
+  if(streakBonus>0)breakText+=' + Streak: '+streakBonus;
+  if(comboBonus>0)breakText+=' + Combo: '+comboBonus;
+  if(modeBonus>0)breakText+=' + Mode: '+modeBonus;
+  document.getElementById('xpBreak').textContent=breakText;
+  
+  document.getElementById('resC').textContent=quiz.correct;
+  document.getElementById('resW').textContent=quiz.wrong;
+  document.getElementById('resAcc').textContent=acc+'%';
+  document.getElementById('resStrk').textContent=quiz.bestStreak;
+  if(quiz.wrongQs.length>0){
+    document.getElementById('wrongReview').style.display='block';
+    var html='';
+    quiz.wrongQs.forEach(function(w){html+='<div class="wrong-item"><div class="q">'+w.q+'</div><div class="a">✓ '+w.a+'</div></div>';});
+    document.getElementById('wrongList').innerHTML=html;
+  }else{
+    document.getElementById('wrongReview').style.display='none';
+  }
+  save();
+  checkAchievements();
+  updateUI();
+  updateDailyStatus();
+  showScreen('resScr');
+}
+
+function showStudy(){
+  const tabs=document.getElementById('studyTabs');
+  tabs.innerHTML='';
+  const sections=['fundamentals','ge','westinghouse','siemens','lube','valves','generator','maintenance','troubleshoot','safety','condenser','feedwater','exciter','glandseals','drains','vibration','controls','startup','bearings','tools','rotor','coupling'];
+  const names=['Fundamentals','GE','Westinghouse','Siemens','Lube Oil','Valves','Generator','Maintenance','Troubleshoot','Safety','Condenser','Feedwater','Exciter','Gland Seals','Drains','Vibration','Controls','Startup','Bearings','Tools','Rotor','Coupling'];
+  sections.forEach(function(s,i){
+    tabs.innerHTML+='<div class="stab'+(i===0?' active':'')+'" onclick="showStudySection(\''+s+'\',this)">'+names[i]+'</div>';
+  });
+  document.getElementById('studyContent').innerHTML=STUDY.fundamentals;
+  showScreen('studyScr');
+}
+
+function showStudySection(id,el){
+  document.querySelectorAll('.stab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  document.getElementById('studyContent').innerHTML=STUDY[id]||'<p>Coming soon...</p>';
+}
+
+// ACHIEVEMENTS SYSTEM
+var ACHIEVEMENTS = [
+  {id:'first_quiz',name:'First Steps',desc:'Complete your first quiz',icon:'👶',check:function(){return G.totalAnswered>=10;}},
+  {id:'century',name:'Century',desc:'Answer 100 questions',icon:'💯',check:function(){return G.totalAnswered>=100;}},
+  {id:'dedicated',name:'Dedicated',desc:'Answer 500 questions',icon:'📚',check:function(){return G.totalAnswered>=500;}},
+  {id:'expert',name:'Expert',desc:'Answer 1000 questions',icon:'🎓',check:function(){return G.totalAnswered>=1000;}},
+  {id:'streak5',name:'On Fire',desc:'Get a 5 streak',icon:'🔥',check:function(){return G.bestStreak>=5;}},
+  {id:'streak10',name:'Unstoppable',desc:'Get a 10 streak',icon:'💥',check:function(){return G.bestStreak>=10;}},
+  {id:'streak20',name:'Legendary',desc:'Get a 20 streak',icon:'⚡',check:function(){return G.bestStreak>=20;}},
+  {id:'lvl5',name:'Apprentice',desc:'Reach level 5',icon:'🔧',check:function(){return G.lvl>=5;}},
+  {id:'lvl10',name:'Journeyman',desc:'Reach level 10',icon:'⚙️',check:function(){return G.lvl>=10;}},
+  {id:'lvl20',name:'Master',desc:'Reach level 20',icon:'🏆',check:function(){return G.lvl>=20;}},
+  {id:'daily3',name:'Consistent',desc:'Complete 3 daily challenges',icon:'📅',check:function(){return G.dailyCount>=3;}},
+  {id:'daily7',name:'Weekly Warrior',desc:'Complete 7 daily challenges',icon:'🗓️',check:function(){return G.dailyCount>=7;}},
+  {id:'perfect',name:'Perfect',desc:'Get 100% on a quiz (10+ questions)',icon:'⭐',check:function(){return G.perfectQuiz===true;}},
+  {id:'marathon',name:'Marathoner',desc:'Complete a 50 question marathon',icon:'🏃',check:function(){return G.marathonDone===true;}},
+  {id:'survivor',name:'Survivor',desc:'Answer 25+ in survival mode',icon:'💀',check:function(){return G.survivalBest>=25;}},
+  {id:'boss1',name:'Boss Slayer',desc:'Defeat your first boss',icon:'⚔️',check:function(){return G.bossDefeated&&G.bossDefeated.length>=1;}},
+  {id:'boss3',name:'Boss Hunter',desc:'Defeat 3 bosses',icon:'🗡️',check:function(){return G.bossDefeated&&G.bossDefeated.length>=3;}},
+  {id:'bossall',name:'Boss Master',desc:'Defeat all bosses',icon:'👑',check:function(){return G.bossDefeated&&G.bossDefeated.length>=6;}},
+  {id:'blitz10',name:'Quick Draw',desc:'Answer 10+ in Blitz mode',icon:'⏱️',check:function(){return G.blitzBest>=10;}},
+  {id:'blitz20',name:'Speed Demon',desc:'Answer 20+ in Blitz mode',icon:'🚀',check:function(){return G.blitzBest>=20;}},
+  {id:'bookmark5',name:'Bookworm',desc:'Bookmark 5 questions',icon:'🔖',check:function(){return G.bookmarks&&G.bookmarks.length>=5;}}
+];
+
+function checkAchievements(){
+  ACHIEVEMENTS.forEach(function(a){
+    if(!G.achievements){G.achievements=[];}
+    if(G.achievements.indexOf(a.id)===-1 && a.check()){
+      G.achievements.push(a.id);
+      showAchieveToast(a.icon+' '+a.name);
+      save();
+    }
+  });
+}
+
+function showAchieveToast(text){
+  var toast=document.getElementById('achieveToast');
+  toast.textContent='🏆 '+text+'!';
+  toast.classList.add('show');
+  setTimeout(function(){toast.classList.remove('show');},3000);
+}
+
+function showAchievements(){
+  var grid=document.getElementById('achieveGrid');
+  grid.innerHTML='';
+  if(!G.achievements){G.achievements=[];}
+  ACHIEVEMENTS.forEach(function(a){
+    var unlocked=G.achievements.indexOf(a.id)!==-1;
+    grid.innerHTML+='<div class="achieve-item'+(unlocked?' unlocked':'')+'"><div class="ico">'+a.icon+'</div><div class="info"><h4>'+a.name+'</h4><p>'+a.desc+'</p></div></div>';
+  });
+  showScreen('achieveScr');
+}
+
+// DAILY CHALLENGE
+function getTodayStr(){
+  var d=new Date();
+  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+}
+
+function startDaily(){
+  var today=getTodayStr();
+  if(G.lastDaily===today){
+    alert('Daily challenge already completed today! Come back tomorrow.');
+    return;
+  }
+  quiz={mode:'daily',cat:'',qs:[],idx:0,correct:0,wrong:0,streak:0,bestStreak:0,lives:99,timer:null,wrongQs:[]};
+  var pool=[];
+  Object.values(Q).forEach(function(c){pool=pool.concat(c.qs);});
+  // Seed shuffle with today's date for consistent daily
+  var seed=parseInt(today.replace(/-/g,''));
+  for(var i=pool.length-1;i>0;i--){
+    seed=(seed*9301+49297)%233280;
+    var j=Math.floor((seed/233280)*i);
+    var temp=pool[i];pool[i]=pool[j];pool[j]=temp;
+  }
+  quiz.qs=pool.slice(0,15);
+  quiz.catName='DAILY CHALLENGE';
+  document.getElementById('timerWrap').style.display='none';
+  document.getElementById('livesD').style.display='none';
+  showScreen('quizScr');
+  showQuestion();
+}
+
+function updateDailyStatus(){
+  var today=getTodayStr();
+  var status=document.getElementById('dailyStatus');
+  if(G.lastDaily===today){
+    status.textContent='✓ Done';
+    status.style.color='var(--gn)';
+  }else{
+    status.textContent='NEW!';
+    status.style.color='var(--yl)';
+  }
+}
+
+// FLASHCARD SYSTEM
+var flash={cards:[],idx:0,cat:'all'};
+
+function showFlashcards(){
+  var catDiv=document.getElementById('flashCatSel');
+  catDiv.innerHTML='<span class="flash-cat-btn active" onclick="setFlashCat(\'all\',this)">All</span>';
+  Object.keys(Q).forEach(function(k){
+    catDiv.innerHTML+='<span class="flash-cat-btn" onclick="setFlashCat(\''+k+'\',this)">'+Q[k].name+'</span>';
+  });
+  loadFlashcards('all');
+  showScreen('flashScr');
+}
+
+function setFlashCat(cat,el){
+  document.querySelectorAll('.flash-cat-btn').forEach(function(b){b.classList.remove('active');});
+  el.classList.add('active');
+  loadFlashcards(cat);
+}
+
+function loadFlashcards(cat){
+  flash.cat=cat;
+  flash.cards=[];
+  if(cat==='all'){
+    Object.values(Q).forEach(function(c){flash.cards=flash.cards.concat(c.qs);});
+  }else{
+    flash.cards=Q[cat].qs.slice();
+  }
+  flash.idx=0;
+  showCurrentCard();
+}
+
+function showCurrentCard(){
+  if(flash.cards.length===0)return;
+  var card=flash.cards[flash.idx];
+  document.getElementById('flashFront').textContent=card.q;
+  document.getElementById('flashBack').textContent=card.a[card.c];
+  document.getElementById('flashCard').classList.remove('flipped');
+  document.getElementById('flashProg').textContent=(flash.idx+1)+'/'+flash.cards.length;
+}
+
+function flipCard(){
+  document.getElementById('flashCard').classList.toggle('flipped');
+}
+
+function nextCard(){
+  flash.idx=(flash.idx+1)%flash.cards.length;
+  showCurrentCard();
+}
+
+function prevCard(){
+  flash.idx=(flash.idx-1+flash.cards.length)%flash.cards.length;
+  showCurrentCard();
+}
+
+function shuffleCards(){
+  for(var i=flash.cards.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var temp=flash.cards[i];flash.cards[i]=flash.cards[j];flash.cards[j]=temp;
+  }
+  flash.idx=0;
+  showCurrentCard();
+}
+
+// Update endQuiz to track achievements
+var originalEndQuiz=endQuiz;
+endQuiz=function(){
+  clearInterval(quiz.timer);
+  document.getElementById('strk').classList.remove('show');
+  var baseXP=quiz.correct*10;
+  var streakBonus=quiz.bestStreak*5;
+  var dailyBonus=0;
+  if(quiz.mode==='daily'){
+    dailyBonus=50;
+    G.lastDaily=getTodayStr();
+    if(!G.dailyCount)G.dailyCount=0;
+    G.dailyCount++;
+  }
+  var total=baseXP+streakBonus+dailyBonus;
+  G.xp+=total;
+  while(G.xp>=G.xpNext*G.lvl){G.lvl++;G.xpNext=Math.round(G.xpNext*1.15);}
+  var acc=quiz.correct+quiz.wrong>0?Math.round(quiz.correct/(quiz.correct+quiz.wrong)*100):0;
+  
+  // Track achievements
+  if(acc===100 && quiz.qs.length>=10)G.perfectQuiz=true;
+  if(quiz.mode==='marathon' && quiz.idx>=50)G.marathonDone=true;
+  if(quiz.mode==='survival'){
+    if(!G.survivalBest)G.survivalBest=0;
+    if(quiz.idx>G.survivalBest)G.survivalBest=quiz.idx;
+  }
+  
+  var icon='🏆',title='Great Work!',sub='Becoming a turbine expert!';
+  if(quiz.mode==='daily'){icon='📅';title='Daily Complete!';sub='Bonus XP earned!';}
+  else if(acc>=90){icon='🌟';title='Outstanding!';sub='Nuclear-grade performance!';}
+  else if(acc>=70){icon='👍';title='Good Job!';sub='Keep studying!';}
+  else if(acc<50){icon='📚';title='Keep Learning!';sub='Review the study guide.';}
+  document.getElementById('resIco').textContent=icon;
+  document.getElementById('resTitle').textContent=title;
+  document.getElementById('resSub').textContent=sub;
+  document.getElementById('xpGained').textContent=total;
+  var breakText='Base: '+baseXP+' + Streak: '+streakBonus;
+  if(dailyBonus>0)breakText+=' + Daily: '+dailyBonus;
+  document.getElementById('xpBreak').textContent=breakText;
+  document.getElementById('resC').textContent=quiz.correct;
+  document.getElementById('resW').textContent=quiz.wrong;
+  document.getElementById('resAcc').textContent=acc+'%';
+  document.getElementById('resStrk').textContent=quiz.bestStreak;
+  if(quiz.wrongQs.length>0){
+    document.getElementById('wrongReview').style.display='block';
+    var html='';
+    quiz.wrongQs.forEach(function(w){html+='<div class="wrong-item"><div class="q">'+w.q+'</div><div class="a">✓ '+w.a+'</div></div>';});
+    document.getElementById('wrongList').innerHTML=html;
+  }else{
+    document.getElementById('wrongReview').style.display='none';
+  }
+  save();
+  checkAchievements();
+  updateUI();
+  updateDailyStatus();
+  showScreen('resScr');
+};
+
+// INIT
+if(!G.achievements)G.achievements=[];
+if(!G.dailyCount)G.dailyCount=0;
+if(!G.survivalBest)G.survivalBest=0;
+if(!G.catStats)G.catStats={};
+
+// STATISTICS DISPLAY
+function showStats(){
+  var grid=document.getElementById('statsGrid');
+  grid.innerHTML='';
+  var totalC=0,totalW=0;
+  var catData=[];
+  
+  Object.keys(Q).forEach(function(k){
+    var cat=Q[k];
+    var stats=G.catStats[k]||{c:0,w:0};
+    var total=stats.c+stats.w;
+    var pct=total>0?Math.round(stats.c/total*100):0;
+    catData.push({key:k,name:cat.name,icon:cat.icon,c:stats.c,w:stats.w,total:total,pct:pct});
+    totalC+=stats.c;
+    totalW+=stats.w;
+  });
+  
+  // Sort by percentage (worst first for weak areas visibility)
+  catData.sort(function(a,b){
+    if(a.total===0&&b.total===0)return 0;
+    if(a.total===0)return 1;
+    if(b.total===0)return -1;
+    return a.pct-b.pct;
+  });
+  
+  catData.forEach(function(d){
+    var cls='none';
+    if(d.total>0){
+      if(d.pct>=80)cls='good';
+      else if(d.pct>=60)cls='ok';
+      else cls='weak';
+    }
+    grid.innerHTML+='<div class="stat-row '+cls+'">'+
+      '<span class="cat-icon">'+d.icon+'</span>'+
+      '<span class="cat-name">'+d.name+'</span>'+
+      '<div class="stat-bar"><div class="stat-fill" style="width:'+d.pct+'%"></div></div>'+
+      '<span class="stat-pct" style="color:'+(cls==='good'?'var(--gn)':cls==='ok'?'var(--yl)':cls==='weak'?'var(--rd)':'#555')+'">'+
+      (d.total>0?d.pct+'%':'--')+'</span>'+
+      '</div>';
+  });
+  
+  var overallPct=(totalC+totalW)>0?Math.round(totalC/(totalC+totalW)*100):0;
+  document.getElementById('statsSummary').innerHTML='Overall: <strong>'+overallPct+'%</strong> ('+totalC+' correct / '+(totalC+totalW)+' total)<br>'+
+    '<span style="color:var(--gn)">■</span> 80%+ Good '+
+    '<span style="color:var(--yl)">■</span> 60-79% OK '+
+    '<span style="color:var(--rd)">■</span> Below 60% Weak';
+  
+  showScreen('statsScr');
+}
+
+// WEAK AREAS MODE
+function startWeakAreas(){
+  if(!G.catStats||Object.keys(G.catStats).length===0){
+    alert('Complete some quizzes first to identify weak areas!');
+    return;
+  }
+  
+  // Find categories with worst performance
+  var weakCats=[];
+  Object.keys(Q).forEach(function(k){
+    var stats=G.catStats[k];
+    if(stats&&(stats.c+stats.w)>=3){
+      var pct=Math.round(stats.c/(stats.c+stats.w)*100);
+      if(pct<80)weakCats.push({key:k,pct:pct});
+    }
+  });
+  
+  if(weakCats.length===0){
+    alert('Great job! No weak areas detected. Keep practicing to maintain mastery!');
+    return;
+  }
+  
+  // Sort by worst performance
+  weakCats.sort(function(a,b){return a.pct-b.pct;});
+  
+  // Build pool from worst 3-5 categories
+  var numCats=Math.min(weakCats.length,5);
+  var pool=[];
+  var catNames=[];
+  for(var i=0;i<numCats;i++){
+    var k=weakCats[i].key;
+    catNames.push(Q[k].name);
+    Q[k].qs.forEach(function(q){
+      pool.push(Object.assign({},q,{cat:k}));
+    });
+  }
+  
+  quiz={mode:'weak',cat:'',qs:[],idx:0,correct:0,wrong:0,streak:0,bestStreak:0,lives:3,timer:null,wrongQs:[],combo:1};
+  shuffle(pool);
+  quiz.qs=pool.slice(0,20);
+  quiz.catName='WEAK AREAS';
+  document.getElementById('timerWrap').style.display='none';
+  document.getElementById('livesD').style.display='none';
+  document.getElementById('blitzWrap').style.display='none';
+  showScreen('quizScr');
+  showQuestion();
+}
+
+// BLITZ MODE - 60 seconds, max questions
+function startBlitz(){
+  var pool=[];
+  Object.keys(Q).forEach(function(k){
+    Q[k].qs.forEach(function(q){pool.push(Object.assign({},q,{cat:k}));});
+  });
+  shuffle(pool);
+  quiz={mode:'blitz',cat:'',qs:pool,idx:0,correct:0,wrong:0,streak:0,bestStreak:0,lives:99,timer:null,wrongQs:[],combo:1,blitzTimeLeft:60};
+  quiz.catName='⏱️ BLITZ MODE';
+  document.getElementById('timerWrap').style.display='none';
+  document.getElementById('livesD').style.display='none';
+  document.getElementById('blitzWrap').style.display='block';
+  document.getElementById('blitzTime').textContent='60';
+  document.getElementById('blitzCount').textContent='0';
+  showScreen('quizScr');
+  quiz.blitzTimer=setInterval(function(){
+    quiz.blitzTimeLeft--;
+    document.getElementById('blitzTime').textContent=quiz.blitzTimeLeft;
+    if(quiz.blitzTimeLeft<=0){clearInterval(quiz.blitzTimer);endQuiz();}
+  },1000);
+  showQuestion();
+}
+
+// BOSS BATTLES
+var BOSSES=[
+  {id:'hp_demon',name:'HP Turbine Demon',icon:'👹',desc:'Master HP turbine internals',cats:['fundamentals','ge','westinghouse'],level:5,questions:15},
+  {id:'lube_lord',name:'Lube Oil Lord',icon:'🛢️',desc:'Conquer lubrication systems',cats:['lube','bearings','troubleshoot'],level:8,questions:15},
+  {id:'valve_vampire',name:'Valve Vampire',icon:'🧛',desc:'Defeat valve systems',cats:['valves','controls','safety'],level:10,questions:15},
+  {id:'generator_ghost',name:'Generator Ghost',icon:'👻',desc:'Master generator & cooling',cats:['generator','exciter','glandseals'],level:12,questions:15},
+  {id:'rotor_reaper',name:'Rotor Reaper',icon:'💀',desc:'Expert rotor procedures',cats:['rotor','coupling','maintenance'],level:15,questions:20},
+  {id:'turbine_titan',name:'Turbine Titan',icon:'⚡',desc:'Ultimate challenge - all systems',cats:['all'],level:20,questions:25}
+];
+
+function showBossBattles(){
+  var grid=document.getElementById('bossSelect');
+  grid.innerHTML='';
+  if(!G.bossDefeated)G.bossDefeated=[];
+  BOSSES.forEach(function(b){
+    var locked=G.lvl<b.level;
+    var defeated=G.bossDefeated.indexOf(b.id)!==-1;
+    grid.innerHTML+='<div class="boss-btn'+(locked?' locked':'')+(defeated?' completed':'')+'" onclick="'+(locked?'':'startBoss(\''+b.id+'\')')+'">'+ 
+      '<span class="boss-icon">'+b.icon+'</span>'+
+      '<h4>'+b.name+(defeated?' ✓':'')+'</h4>'+
+      '<p>'+b.desc+'</p>'+
+      '<p style="color:'+(locked?'var(--rd)':'var(--yl)')+'">'+
+      (locked?'🔒 Requires Level '+b.level:'⚔️ '+b.questions+' questions - 80% to defeat')+'</p>'+
+      '</div>';
+  });
+  showScreen('bossScr');
+}
+
+function startBoss(id){
+  var boss=BOSSES.find(function(b){return b.id===id;});
+  if(!boss)return;
+  var pool=[];
+  if(boss.cats[0]==='all'){
+    Object.keys(Q).forEach(function(k){
+      Q[k].qs.forEach(function(q){pool.push(Object.assign({},q,{cat:k}));});
+    });
+  }else{
+    boss.cats.forEach(function(k){
+      if(Q[k])Q[k].qs.forEach(function(q){pool.push(Object.assign({},q,{cat:k}));});
+    });
+  }
+  shuffle(pool);
+  quiz={mode:'boss',cat:'',qs:pool.slice(0,boss.questions),idx:0,correct:0,wrong:0,streak:0,bestStreak:0,lives:99,timer:null,wrongQs:[],combo:1,bossId:id,bossName:boss.name};
+  quiz.catName='👹 '+boss.name;
+  document.getElementById('timerWrap').style.display='none';
+  document.getElementById('livesD').style.display='none';
+  document.getElementById('blitzWrap').style.display='none';
+  showScreen('quizScr');
+  showQuestion();
+}
+
+// BOOKMARKS
+function toggleBookmark(){
+  if(!G.bookmarks)G.bookmarks=[];
+  var q=quiz.qs[quiz.idx];
+  var key=q.q;
+  var idx=G.bookmarks.findIndex(function(b){return b.q===key;});
+  if(idx===-1){
+    G.bookmarks.push({q:q.q,a:q.a[q.c],e:q.e,cat:q.cat});
+    playSound('achieve');
+  }else{
+    G.bookmarks.splice(idx,1);
+  }
+  save();
+  updateBookmarkBtn();
+}
+
+function updateBookmarkBtn(){
+  if(!quiz.qs||!quiz.qs[quiz.idx])return;
+  var q=quiz.qs[quiz.idx];
+  if(!G.bookmarks)G.bookmarks=[];
+  var isBookmarked=G.bookmarks.some(function(b){return b.q===q.q;});
+  document.getElementById('bookmarkBtn').classList.toggle('active',isBookmarked);
+}
+
+function showBookmarks(){
+  var list=document.getElementById('bookmarkList');
+  if(!G.bookmarks||G.bookmarks.length===0){
+    list.innerHTML='<p style="color:#888;text-align:center;padding:20px">No bookmarks yet. Tap 🔖 during quizzes to save questions.</p>';
+    document.getElementById('bookmarkQuizBtn').style.display='none';
+  }else{
+    list.innerHTML='';
+    G.bookmarks.forEach(function(b,i){
+      list.innerHTML+='<div class="bookmark-item">'+
+        '<button class="remove" onclick="removeBookmark('+i+')">✕</button>'+
+        '<div class="q">'+b.q+'</div>'+
+        '<div class="a">✓ '+b.a+'</div>'+
+        '</div>';
+    });
+    document.getElementById('bookmarkQuizBtn').style.display='block';
+  }
+  showScreen('bookmarkScr');
+}
+
+function removeBookmark(idx){
+  G.bookmarks.splice(idx,1);
+  save();
+  showBookmarks();
+}
+
+function startBookmarkQuiz(){
+  if(!G.bookmarks||G.bookmarks.length===0)return;
+  var pool=G.bookmarks.map(function(b){
+    return {q:b.q,a:[b.a,'Incorrect A','Incorrect B','Incorrect C'],c:0,e:b.e,cat:b.cat};
+  });
+  shuffle(pool);
+  quiz={mode:'bookmark',cat:'',qs:pool,idx:0,correct:0,wrong:0,streak:0,bestStreak:0,lives:99,timer:null,wrongQs:[],combo:1};
+  quiz.catName='🔖 BOOKMARKS';
+  document.getElementById('timerWrap').style.display='none';
+  document.getElementById('livesD').style.display='none';
+  document.getElementById('blitzWrap').style.display='none';
+  showScreen('quizScr');
+  showQuestion();
+}
+
+// Update quitQuiz to handle blitz
+var originalQuitQuiz=quitQuiz;
+quitQuiz=function(){
+  clearInterval(quiz.timer);
+  clearInterval(quiz.blitzTimer);
+  document.getElementById('strk').classList.remove('show');
+  document.getElementById('comboDisp').classList.remove('show','mega');
+  document.getElementById('blitzWrap').style.display='none';
+  showMenu();
+};
+
+// INIT
+if(!G.achievements)G.achievements=[];
+if(!G.dailyCount)G.dailyCount=0;
+if(!G.survivalBest)G.survivalBest=0;
+if(!G.catStats)G.catStats={};
+if(!G.bookmarks)G.bookmarks=[];
+if(!G.bossDefeated)G.bossDefeated=[];
+if(!G.spacedRep)G.spacedRep={};
+if(!G.blitzBest)G.blitzBest=0;
+applySettings();
+updateUI();
+updateDailyStatus();
+
+// PWA Service Worker Registration
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      console.log('SW registered');
+    }).catch(function(err){
+      console.log('SW registration failed:',err);
+    });
+  });
+}
+
+// PWA Install Prompt
+var deferredPrompt;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  deferredPrompt=e;
+  showInstallButton();
+});
+
+function showInstallButton(){
+  var btn=document.createElement('div');
+  btn.id='installBtn';
+  btn.innerHTML='📲 Install App';
+  btn.style.cssText='position:fixed;bottom:70px;right:15px;background:var(--gn);color:#fff;padding:10px 15px;border-radius:20px;font-size:.75rem;font-weight:bold;cursor:pointer;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,0.3)';
+  btn.onclick=installPWA;
+  document.body.appendChild(btn);
+}
+
+function installPWA(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(result){
+    if(result.outcome==='accepted')console.log('PWA installed');
+    deferredPrompt=null;
+    var btn=document.getElementById('installBtn');
+    if(btn)btn.remove();
+  });
+}
+
+// Hide install button if already installed
+window.addEventListener('appinstalled',function(){
+  var btn=document.getElementById('installBtn');
+  if(btn)btn.remove();
+});
+</script>
+</body>
+</html>
